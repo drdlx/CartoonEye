@@ -3,22 +3,15 @@ package com.drdlx.cartooneye.startScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavGraph
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavHost
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.drdlx.cartooneye.consts.defaultRoute
-import com.drdlx.cartooneye.mainScreens.MainScreen
+import com.drdlx.cartooneye.mainScreen.view.MainScreen
 import com.drdlx.cartooneye.navigation.AppNavigation
 import com.drdlx.cartooneye.navigation.routeObjects.AppScreens
 import com.drdlx.cartooneye.navigation.routeObjects.popRouteName
@@ -34,12 +27,12 @@ class MainActivity : ComponentActivity() {
     }
 
     //inject it
-    val navigator: AppNavigation by inject()
+    private val navigator: AppNavigation by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val startingDestination = AppScreens.StartingScreen.route
+        val startingDestination = AppScreens.CameraScreen.route
         val startingGraph = defaultRoute
 
         setContent {
@@ -67,9 +60,12 @@ class MainActivity : ComponentActivity() {
 
             NavHost(
                 navController = navigationController,
-                startDestination = AppScreens.StartingScreen.route
+                startDestination = AppScreens.CameraScreen.route
             ) {
-                composable(route = AppScreens.StartingScreen.route) {
+                composable(route = AppScreens.CameraScreen.route) {
+                    MainScreen()
+                }
+                composable(route = AppScreens.CameraScreen.route) {
                     MainScreen()
                 }
 

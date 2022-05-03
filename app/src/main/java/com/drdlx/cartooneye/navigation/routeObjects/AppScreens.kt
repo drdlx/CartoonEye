@@ -2,7 +2,7 @@ package com.drdlx.cartooneye.navigation.routeObjects
 
 import androidx.navigation.NavOptions
 
-const val startingScreenRoute = "StartingScreenRoute"
+const val cameraScreenRoute = "CameraScreenRoute"
 const val popRouteName = "popRoute"
 
 sealed class AppScreens(
@@ -12,5 +12,6 @@ sealed class AppScreens(
     val saveState: Boolean = false,
     val popTargetRoute: String = "",
 ) {
-    object StartingScreen: AppScreens(startingScreenRoute)
+    object CameraScreen: AppScreens(cameraScreenRoute)
+    object GalleryScreen: AppScreens(cameraScreenRoute)
 }
