@@ -1,4 +1,4 @@
-package com.drdlx.cartooneye.mainScreen.navigation
+package com.drdlx.cartooneye.mainScreens.mainScreen.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController

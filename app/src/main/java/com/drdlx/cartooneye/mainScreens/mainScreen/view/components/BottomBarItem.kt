@@ -1,10 +1,8 @@
-package com.drdlx.cartooneye.mainScreen.view.components
+package com.drdlx.cartooneye.mainScreens.mainScreen.view.components
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.drdlx.cartooneye.navigation.routeObjects.cameraTab
 import com.drdlx.cartooneye.navigation.routeObjects.galleryTab

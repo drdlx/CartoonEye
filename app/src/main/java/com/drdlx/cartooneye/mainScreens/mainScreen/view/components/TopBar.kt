@@ -1,4 +1,4 @@
-package com.drdlx.cartooneye.mainScreen.view.components
+package com.drdlx.cartooneye.mainScreens.mainScreen.view.components
 
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text

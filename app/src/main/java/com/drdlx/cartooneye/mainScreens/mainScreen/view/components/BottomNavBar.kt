@@ -1,11 +1,10 @@
-package com.drdlx.cartooneye.mainScreen.view.components
+package com.drdlx.cartooneye.mainScreens.mainScreen.view.components
 
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.drdlx.cartooneye.mainScreen.model.StringCallback
+import com.drdlx.cartooneye.mainScreens.mainScreen.model.StringCallback
 
 @Composable
 fun BottomNavBar(
