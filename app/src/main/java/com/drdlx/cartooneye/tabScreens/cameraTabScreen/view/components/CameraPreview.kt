@@ -12,16 +12,14 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.drdlx.cartooneye.utils.getCameraProvider
 import kotlinx.coroutines.launch
 import android.util.Log
+import androidx.camera.core.UseCase
 
 @Composable
 fun CameraPreview(
     modifier: Modifier = Modifier,
     scaleType: PreviewView.ScaleType = PreviewView.ScaleType.FILL_CENTER,
-    cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+    onUseCase: (UseCase) -> Unit = { }
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val lifecycleOwner = LocalLifecycleOwner.current
-
     AndroidView(
         modifier = modifier,
         factory = { context ->
@@ -32,27 +30,13 @@ fun CameraPreview(
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
             }
-
-            // CameraX Preview UseCase
-            val previewUseCase = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
-                }
-
-            coroutineScope.launch {
-                val cameraProvider = context.getCameraProvider()
-                try {
-                    // Must unbind the use-cases before rebinding them.
-                    cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(
-                        lifecycleOwner, cameraSelector, previewUseCase
-                    )
-                } catch (ex: Exception) {
-                    Log.e("CameraPreview", "Use case binding failed", ex)
-                }
-            }
-
+            onUseCase(
+                Preview.Builder()
+                    .build()
+                    .also {
+                        it.setSurfaceProvider(previewView.surfaceProvider)
+                    }
+            )
             previewView
         }
     )
