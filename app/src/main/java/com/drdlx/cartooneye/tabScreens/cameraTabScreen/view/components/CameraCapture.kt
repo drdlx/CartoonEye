@@ -72,9 +72,9 @@ fun CameraCapture(
                     previewUseCase = it
                 }
             )
-            Button(
+            CapturePictureButton(
                 modifier = Modifier
-                    .wrapContentSize()
+                    .size(100.dp)
                     .padding(16.dp)
                     .align(Alignment.BottomCenter),
                 onClick = {
@@ -84,9 +84,7 @@ fun CameraCapture(
                         }
                     }
                 }
-            ) {
-                Text("Click!")
-            }
+            )
             LaunchedEffect(previewUseCase) {
                 val cameraProvider = context.getCameraProvider()
                 try {

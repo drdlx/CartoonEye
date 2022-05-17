@@ -5,6 +5,7 @@
     <string name="default_permission_request_header">Permission request</string>
     <string name="no_camera_message">No camera presented</string>
     <string name="open_settings">Open settings</string>
+    <string name="use_camera">Use Camera</string>
     <string name="ok">@android:string/ok</string>
 
 </resources>
