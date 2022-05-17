@@ -8,11 +8,13 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.view.components.CameraCapture
 import com.drdlx.cartooneye.utils.EMPTY_IMAGE_URI
+import com.drdlx.cartooneye.R
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
@@ -32,7 +34,7 @@ fun CameraTabScreen() {
                     imageUri = EMPTY_IMAGE_URI
                 }
             ) {
-                Text("Remove image")
+                Text(stringResource(id = R.string.remove_image))
             }
         }
     } else {
