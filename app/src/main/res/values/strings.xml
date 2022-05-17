@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">CartoonEye</string>
+    <string name="camera_permission_ask_message">The app needs permission to camera</string>
+    <string name="default_permission_request_message">This permission is important for this app. Please grant the permission.</string>
+    <string name="default_permission_request_header">Permission request</string>
+    <string name="no_camera_message">No camera presented</string>
+    <string name="open_settings">Open settings</string>
+    <string name="use_camera">Use Camera</string>
+    <string name="ok">@android:string/ok</string>
+
 </resources>
