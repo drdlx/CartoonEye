@@ -76,6 +76,7 @@ dependencies {
 
     implementation "io.insert-koin:koin-android:$koin_version"
     implementation "io.insert-koin:koin-annotations:$koin_ksp_version"
+    testImplementation 'org.junit.jupiter:junit-jupiter'
     ksp "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"
 
     implementation "com.google.accompanist:accompanist-permissions:0.18.0"
