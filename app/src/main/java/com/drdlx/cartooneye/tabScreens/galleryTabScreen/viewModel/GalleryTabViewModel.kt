@@ -18,4 +18,5 @@ class GalleryTabViewModel: ViewModel() {
     fun changeCurrentPicture(uri: Uri) {
         currentPictureUri.value = uri
     }
+
 }

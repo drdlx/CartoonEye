@@ -17,7 +17,8 @@ fun TabsNavigation(navController: NavHostController) {
             val viewModel = CameraTabViewModel()
             CameraTabScreen(
                 uiState = viewModel.uiState,
-                setImageCallback = viewModel::changeCurrentPicture
+                setImageCallback = viewModel::changeCurrentPicture,
+                saveImageCallback = viewModel::saveCurrentPicture,
             )
         }
         composable(route = MainScreenTabRoute.GalleryTab.name) {
