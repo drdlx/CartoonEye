@@ -9,5 +9,6 @@
     <string name="use_camera">Use Camera</string>
     <string name="ok">@android:string/ok</string>
     <string name="remove_image">Remove image</string>
+    <string name="save_image">Save image</string>
 
 </resources>

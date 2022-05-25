@@ -43,9 +43,9 @@ fun GallerySelect(
         }
     }
 
-    SideEffect {
-        launcher.launch("image/*")
-    }
+    //SideEffect {
+    //    launcher.launch("image/*")
+    //}
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         Permission(
@@ -66,7 +66,6 @@ fun GallerySelect(
                         ) {
                             Text(stringResource(R.string.open_settings))
                         }
-                        // If they don't want to grant permissions, this button will result in going back
                         Button(
                             modifier = Modifier.padding(4.dp),
                             onClick = {

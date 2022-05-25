@@ -9,22 +9,25 @@ import com.drdlx.cartooneye.tabScreens.cameraTabScreen.view.CameraTabScreen
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.viewModel.CameraTabViewModel
 import com.drdlx.cartooneye.tabScreens.galleryTabScreen.view.GalleryTabScreen
 import com.drdlx.cartooneye.tabScreens.galleryTabScreen.viewModel.GalleryTabViewModel
+import org.koin.androidx.compose.getViewModel
 
 @Composable
 fun TabsNavigation(navController: NavHostController) {
     NavHost(navController, startDestination = MainScreenTabRoute.CameraTab.name) {
         composable(route = MainScreenTabRoute.CameraTab.name) {
-            val viewModel = CameraTabViewModel()
+            val viewModel = getViewModel<CameraTabViewModel>()
             CameraTabScreen(
                 uiState = viewModel.uiState,
-                setImageCallback = viewModel::changeCurrentPicture
+                setImageCallback = viewModel::changeCurrentPicture,
+                saveImageCallback = viewModel::saveCurrentPicture,
             )
         }
         composable(route = MainScreenTabRoute.GalleryTab.name) {
-            val viewModel = GalleryTabViewModel()
+            val viewModel = getViewModel<GalleryTabViewModel>()
             GalleryTabScreen(
                 uiState = viewModel.uiState,
-                setImageCallback = viewModel::changeCurrentPicture
+                setImageCallback = viewModel::changeCurrentPicture,
+                saveImageCallback = viewModel::saveCurrentPicture,
             )
         }
     }

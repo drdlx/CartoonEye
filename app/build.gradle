@@ -75,6 +75,9 @@ dependencies {
 //    implementation 'io.github.sceneview:arsceneview:0.5.0'
 
     implementation "io.insert-koin:koin-android:$koin_version"
+    implementation "io.insert-koin:koin-androidx-workmanager:$koin_version"
+    implementation "io.insert-koin:koin-androidx-navigation:$koin_version"
+    implementation "io.insert-koin:koin-androidx-compose:$koin_version"
     implementation "io.insert-koin:koin-annotations:$koin_ksp_version"
     testImplementation 'org.junit.jupiter:junit-jupiter'
     ksp "io.insert-koin:koin-ksp-compiler:$koin_ksp_version"

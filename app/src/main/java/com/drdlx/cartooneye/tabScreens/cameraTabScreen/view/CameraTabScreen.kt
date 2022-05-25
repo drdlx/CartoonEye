@@ -1,8 +1,11 @@
 package com.drdlx.cartooneye.tabScreens.cameraTabScreen.view
 
+import android.content.Context
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
@@ -11,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
@@ -27,6 +31,7 @@ import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CameraTabUiState
 fun CameraTabScreen(
     uiState: CameraTabUiState,
     setImageCallback: (Uri) -> Unit,
+    saveImageCallback: (Uri, Context) -> Unit,
 ) {
     val imageUri = uiState.currentPictureUri.observeAsState()
     if (imageUri.value != EMPTY_IMAGE_URI) {
@@ -36,13 +41,24 @@ fun CameraTabScreen(
                 painter = rememberImagePainter(imageUri.value),
                 contentDescription = "Captured image"
             )
-            Button(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                onClick = {
-                    setImageCallback(EMPTY_IMAGE_URI)
+            Row(modifier = Modifier.align(Alignment.BottomCenter)) {
+                Button(
+                    onClick = {
+                        setImageCallback(EMPTY_IMAGE_URI)
+                    }
+                ) {
+                    Text(stringResource(id = R.string.remove_image))
                 }
-            ) {
-                Text(stringResource(id = R.string.remove_image))
+                val localContext = LocalContext.current
+                Button(
+                    onClick = {
+                        imageUri.value?.let { saveImageCallback(it, localContext) }
+                        setImageCallback(EMPTY_IMAGE_URI)
+                        Toast.makeText(localContext, "Photo has been saved!", Toast.LENGTH_LONG).show()
+                    }
+                ) {
+                    Text(stringResource(id = R.string.save_image))
+                }
             }
         }
     } else {
@@ -65,6 +81,7 @@ fun CameraTabScreenPreview() {
         CameraTabScreen(
             uiState = uiState,
             setImageCallback = {},
+            saveImageCallback = { _: Uri, _: Context -> },
         )
     }
 }
