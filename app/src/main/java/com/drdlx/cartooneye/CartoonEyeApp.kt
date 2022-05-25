@@ -9,6 +9,7 @@ import org.koin.core.context.GlobalContext.startKoin
 import org.koin.ksp.generated.module
 
 class CartoonEyeApp: Application() {
+
     override fun onCreate() {
         super.onCreate()
         // Start Koin
@@ -17,6 +18,7 @@ class CartoonEyeApp: Application() {
             androidLogger()
             androidContext(this@CartoonEyeApp)
             modules(
+                AppModule().module,
                 NavigationModule().module,
             )
         }

@@ -8,7 +8,7 @@ import org.koin.core.annotation.Single
 import org.koin.core.annotation.Singleton
 
 @Module
-@ComponentScan
+@ComponentScan("com.drdlx.cartooneye")
 class AppModule {
 
     @Singleton
