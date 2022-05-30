@@ -13,6 +13,8 @@
         android:maxSdkVersion="28"
         tools:ignore="ScopedStorage" />
 
+    <uses-feature android:name="android.hardware.camera.ar" />
+
     <application
         android:name=".CartoonEyeApp"
         android:allowBackup="true"
@@ -33,6 +35,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <meta-data android:name="com.google.ar.core" android:value="required" />
     </application>
 
 </manifest>

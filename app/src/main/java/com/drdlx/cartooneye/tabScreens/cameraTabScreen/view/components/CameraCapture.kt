@@ -37,9 +37,9 @@ fun CameraCapture(
 ) {
     val context = LocalContext.current
     Permission(
-        permission = Manifest.permission.CAMERA,
+        Manifest.permission.CAMERA,
         rationale = stringResource(id = com.drdlx.cartooneye.R.string.camera_permission_ask_message),
-        permissionNotAvailableContent = {
+        permissionsNotAvailableContent = {
             Column(Modifier) {
                 Text(stringResource(id = com.drdlx.cartooneye.R.string.no_camera_message))
                 Spacer(modifier = Modifier.height(8.dp))

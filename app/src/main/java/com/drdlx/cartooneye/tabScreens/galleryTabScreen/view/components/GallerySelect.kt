@@ -49,9 +49,9 @@ fun GallerySelect(
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         Permission(
-            permission = Manifest.permission.ACCESS_MEDIA_LOCATION,
+            Manifest.permission.ACCESS_MEDIA_LOCATION,
             rationale = stringResource(id = R.string.default_permission_request_message),
-            permissionNotAvailableContent = {
+            permissionsNotAvailableContent = {
                 Column(modifier) {
                     Text(stringResource(id = R.string.no_gallery_message))
                     Spacer(modifier = Modifier.height(8.dp))

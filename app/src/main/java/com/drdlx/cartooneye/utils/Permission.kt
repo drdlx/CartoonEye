@@ -6,30 +6,29 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.drdlx.cartooneye.R
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionRequired
-import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.*
 
 @ExperimentalPermissionsApi
 @Composable
 fun Permission(
-    permission: String = android.Manifest.permission.CAMERA,
+    vararg permissions: String,
     rationale: String = stringResource(id = R.string.default_permission_request_message),
-    permissionNotAvailableContent: @Composable () -> Unit = { },
+    permissionsNotAvailableContent: @Composable () -> Unit = { },
     content: @Composable () -> Unit = { }
 ) {
-    val permissionState = rememberPermissionState(permission)
-    PermissionRequired(
-        permissionState = permissionState,
-        permissionNotGrantedContent = {
-            Rationale(
-                text = rationale,
-                onRequestPermission = { permissionState.launchPermissionRequest() }
-            )
-        },
-        permissionNotAvailableContent = permissionNotAvailableContent,
-        content = content
+    val multiplePermissionsState = rememberMultiplePermissionsState(permissions = permissions.asList())
+    PermissionsRequired(
+        multiplePermissionsState = multiplePermissionsState,
+        permissionsNotGrantedContent = { Rationale(
+            text = rationale,
+            onRequestPermission = {
+                multiplePermissionsState.launchMultiplePermissionRequest()
+            }
+        )},
+        permissionsNotAvailableContent = permissionsNotAvailableContent,
+        content = content,
     )
+
 }
 
 @Composable
