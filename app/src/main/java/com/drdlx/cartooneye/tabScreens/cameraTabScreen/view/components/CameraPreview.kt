@@ -1,5 +1,6 @@
 package com.drdlx.cartooneye.tabScreens.cameraTabScreen.view.components
 
+import android.opengl.GLSurfaceView
 import android.view.ViewGroup
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
@@ -13,6 +14,9 @@ import com.drdlx.cartooneye.utils.getCameraProvider
 import kotlinx.coroutines.launch
 import android.util.Log
 import androidx.camera.core.UseCase
+import androidx.compose.material.contentColorFor
+import androidx.compose.ui.platform.LocalContext
+import com.drdlx.cartooneye.utils.ArActivityStorage
 
 @Composable
 fun CameraPreview(
@@ -20,24 +24,65 @@ fun CameraPreview(
     scaleType: PreviewView.ScaleType = PreviewView.ScaleType.FILL_CENTER,
     onUseCase: (UseCase) -> Unit = { }
 ) {
+
+    val localContext = LocalContext.current.applicationContext
     AndroidView(
         modifier = modifier,
         factory = { context ->
-            val previewView = PreviewView(context).apply {
+            /*val previewView = PreviewView(context).apply {
                 this.scaleType = scaleType
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
+            }*/
+
+            ArActivityStorage.initRenderer(localContext)
+
+            val surfaceView = GLSurfaceView(context).apply {
+
+                this.setRenderer(ArActivityStorage.arRenderer.value)
+
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+
+//                ArActivityStorage.initRenderer(context)
+
+                println("WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOW")
+                println(ArActivityStorage.arActivity.value)
+                println(ArActivityStorage.arRenderer.value)
+                println("WOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOW")
+                /*ArActivityStorage.arRenderer.value?.let { facesRenderer ->
+                    println(facesRenderer)
+//                    facesRenderer.initSession()
+                    this.setRenderer(facesRenderer)
+                }*/
             }
-            onUseCase(
+
+            /*onUseCase(
                 Preview.Builder()
                     .build()
                     .also {
                         it.setSurfaceProvider(previewView.surfaceProvider)
                     }
-            )
-            previewView
+            )*/
+//            previewView
+            surfaceView
+        },
+        update = {
+//            println("Renderer on update: ${ArActivityStorage.arRenderer.value}")
+            /*if (ArActivityStorage.arRenderer.value == null) {
+                ArActivityStorage.initRenderer(localContext)
+                println("Created renderer on update: ${ArActivityStorage.arRenderer.value}")
+            }
+            ArActivityStorage.arRenderer.value?.let { facesRenderer ->
+//                it.onPause()
+                facesRenderer.initSession()
+                it.setRenderer(facesRenderer)
+                it.onResume()
+            }*/
         }
     )
 }
