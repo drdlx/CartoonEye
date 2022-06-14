@@ -18,7 +18,7 @@ import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-class ARFacesRenderer(val context: Context, val activity: Activity): GLSurfaceView.Renderer {
+class ARFacesRenderer(val context: Context, private val activity: Activity) : GLSurfaceView.Renderer {
 
     companion object {
         private const val TAG = "ARFacesRenderer"
@@ -54,13 +54,24 @@ class ARFacesRenderer(val context: Context, val activity: Activity): GLSurfaceVi
             backgroundRenderer.createOnGlThread( /*context=*/context)
             augmentedFaceRenderer.createOnGlThread(context, "models/freckles.png")
             augmentedFaceRenderer.setMaterialProperties(0.0f, 1.0f, 0.1f, 6.0f)
-            noseObject.createOnGlThread( /*context=*/context, "models/nose.obj", "models/nose_fur.png")
+            noseObject.createOnGlThread( /*context=*/context,
+                "models/nose.obj",
+                "models/nose_fur.png"
+            )
             noseObject.setMaterialProperties(0.0f, 1.0f, 0.1f, 6.0f)
             noseObject.setBlendMode(ObjectRenderer.BlendMode.AlphaBlending)
-            rightEarObject.createOnGlThread(context, "models/forehead_right.obj", "models/ear_fur.png")
+            rightEarObject.createOnGlThread(
+                context,
+                "models/forehead_right.obj",
+                "models/ear_fur.png"
+            )
             rightEarObject.setMaterialProperties(0.0f, 1.0f, 0.1f, 6.0f)
             rightEarObject.setBlendMode(ObjectRenderer.BlendMode.AlphaBlending)
-            leftEarObject.createOnGlThread(context, "models/forehead_left.obj", "models/ear_fur.png")
+            leftEarObject.createOnGlThread(
+                context,
+                "models/forehead_left.obj",
+                "models/ear_fur.png"
+            )
             leftEarObject.setMaterialProperties(0.0f, 1.0f, 0.1f, 6.0f)
             leftEarObject.setBlendMode(ObjectRenderer.BlendMode.AlphaBlending)
         } catch (e: IOException) {
@@ -88,7 +99,7 @@ class ARFacesRenderer(val context: Context, val activity: Activity): GLSurfaceVi
         // the video background can be properly adjusted.
         // Notify ARCore session that the view size changed so that the perspective matrix and
         // the video background can be properly adjusted.
-        displayRotationHelper!!.updateSessionIfNeeded(session)
+        displayRotationHelper.updateSessionIfNeeded(session!!)
 
         try {
             session!!.setCameraTextureName(backgroundRenderer.textureId)
@@ -208,12 +219,13 @@ class ARFacesRenderer(val context: Context, val activity: Activity): GLSurfaceVi
         try {
             session!!.resume()
         } catch (e: CameraNotAvailableException) {
-//            messageSnackbarHelper.showError(this, "Camera not available. Try restarting the app.")
             Log.e(TAG, "Camera not available. Try restarting the app.")
             session = null
             return
         }
 
+        configSession()
+        resumeSession()
         displayRotationHelper.onResume()
 
     }

@@ -3,16 +3,12 @@ package com.drdlx.cartooneye.tabScreens.cameraTabScreen.view.components
 import android.Manifest
 import android.content.Intent
 import android.net.Uri
+import android.opengl.GLSurfaceView
 import android.provider.Settings
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.Preview
-import androidx.camera.core.UseCase
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import com.drdlx.cartooneye.utils.getCameraProvider
-import android.util.Log
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY
 import androidx.compose.foundation.layout.*
@@ -21,9 +17,7 @@ import androidx.compose.material.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.drdlx.cartooneye.utils.Permission
-import com.drdlx.cartooneye.utils.executor
-import com.drdlx.cartooneye.utils.takePicture
+import com.drdlx.cartooneye.utils.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import kotlinx.coroutines.launch
 import java.io.File
@@ -33,7 +27,10 @@ import java.io.File
 fun CameraCapture(
     modifier: Modifier = Modifier,
     cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
-    onImageFile: (File) -> Unit = { }
+    onImageFile: (File) -> Unit = { },
+    surfaceView: GLSurfaceView?,
+    renderer: GLSurfaceView.Renderer,
+    takePictureCallback: () -> Unit
 ) {
     val context = LocalContext.current
     Permission(
@@ -55,9 +52,10 @@ fun CameraCapture(
     ) {
 
         Box(modifier = modifier) {
-            val lifecycleOwner = LocalLifecycleOwner.current
+//            val lifecycleOwner = LocalLifecycleOwner.current
             val coroutineScope = rememberCoroutineScope()
-            var previewUseCase by remember { mutableStateOf<UseCase>(Preview.Builder().build()) }
+//            var previewUseCase by remember { mutableStateOf<UseCase>(Preview.Builder().build()) }
+
             val imageCaptureUseCase by remember {
                 mutableStateOf(
                     ImageCapture.Builder()
@@ -68,9 +66,13 @@ fun CameraCapture(
 
             CameraPreview(
                 modifier = Modifier.fillMaxSize(),
+                renderer = renderer,
                 onUseCase = {
-                    previewUseCase = it
-                }
+//                    renderer = it
+//                    previewUseCase = it
+                },
+                surfaceView = surfaceView,
+                session = null,
             )
             CapturePictureButton(
                 modifier = Modifier
@@ -79,14 +81,18 @@ fun CameraCapture(
                     .align(Alignment.BottomCenter),
                 onClick = {
                     coroutineScope.launch {
-                        imageCaptureUseCase.takePicture(executor = context.executor).also {
+                        takePictureCallback()
+                        /*imageCaptureUseCase.takePicture(executor = context.executor).also {
                             onImageFile(it)
-                        }
+                        }*/
                     }
                 }
             )
-            LaunchedEffect(previewUseCase) {
-                val cameraProvider = context.getCameraProvider()
+//            LaunchedEffect(renderer) {
+//                renderer.destroySession()
+//                renderer.initSession()
+//                renderer.configSession()
+                /*val cameraProvider = context.getCameraProvider()
                 try {
                     // Must unbind the use-cases before rebinding them.
                     cameraProvider.unbindAll()
@@ -95,8 +101,8 @@ fun CameraCapture(
                     )
                 } catch (exception: Exception) {
                     Log.e("CameraCapture", "Failed to bind camera use cases", exception)
-                }
-            }
+                }*/
+//            }
         }
     }
 }

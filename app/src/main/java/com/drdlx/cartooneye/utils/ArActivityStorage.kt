@@ -13,10 +13,10 @@ object ArActivityStorage {
     private val _arActivity = MutableLiveData<Activity>(null)
     val arActivity: LiveData<Activity> = _arActivity
 
-    private val _arRenderer = MutableLiveData<ARFacesRenderer>(null)
-    val arRenderer: LiveData<ARFacesRenderer> = _arRenderer
+//    private val _arRenderer = MutableLiveData<ARFacesRenderer>(null)
+//    val arRenderer: LiveData<ARFacesRenderer> = _arRenderer
 
-    fun initRenderer(context: Context) {
+    /*fun initRenderer(context: Context) {
         if(arActivity.value != null) {
             val renderer = ARFacesRenderer(context, arActivity.value!!)
             _arRenderer.postValue(renderer)
@@ -25,7 +25,7 @@ object ArActivityStorage {
         } else {
             Log.e(TAG, "Right now there's no activity presented!")
         }
-    }
+    }*/
 
     fun setActivity(activity: Activity) {
         _arActivity.postValue(activity)

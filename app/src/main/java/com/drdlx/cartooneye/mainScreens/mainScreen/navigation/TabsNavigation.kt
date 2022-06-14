@@ -1,5 +1,6 @@
 package com.drdlx.cartooneye.mainScreens.mainScreen.navigation
 
+import android.opengl.GLSurfaceView
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -12,14 +13,21 @@ import com.drdlx.cartooneye.tabScreens.galleryTabScreen.viewModel.GalleryTabView
 import org.koin.androidx.compose.getViewModel
 
 @Composable
-fun TabsNavigation(navController: NavHostController) {
+fun TabsNavigation(
+    navController: NavHostController,
+    surfaceView: GLSurfaceView?,
+    renderer: GLSurfaceView.Renderer,
+    saveImageCallback: () -> Unit
+) {
     NavHost(navController, startDestination = MainScreenTabRoute.CameraTab.name) {
         composable(route = MainScreenTabRoute.CameraTab.name) {
             val viewModel = getViewModel<CameraTabViewModel>()
             CameraTabScreen(
                 uiState = viewModel.uiState,
                 setImageCallback = viewModel::changeCurrentPicture,
-                saveImageCallback = viewModel::saveCurrentPicture,
+                saveImageCallback = saveImageCallback,
+                surfaceView = surfaceView,
+                renderer = renderer
             )
         }
         composable(route = MainScreenTabRoute.GalleryTab.name) {

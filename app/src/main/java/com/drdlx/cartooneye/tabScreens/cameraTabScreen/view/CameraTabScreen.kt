@@ -1,7 +1,7 @@
 package com.drdlx.cartooneye.tabScreens.cameraTabScreen.view
 
-import android.content.Context
 import android.net.Uri
+import android.opengl.GLSurfaceView
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -31,7 +31,9 @@ import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CameraTabUiState
 fun CameraTabScreen(
     uiState: CameraTabUiState,
     setImageCallback: (Uri) -> Unit,
-    saveImageCallback: (Uri, Context) -> Unit,
+    saveImageCallback: () -> Unit,
+    surfaceView: GLSurfaceView?,
+    renderer: GLSurfaceView.Renderer?,
 ) {
     val imageUri = uiState.currentPictureUri.observeAsState()
     if (imageUri.value != EMPTY_IMAGE_URI) {
@@ -42,19 +44,17 @@ fun CameraTabScreen(
                 contentDescription = "Captured image"
             )
             Row(modifier = Modifier.align(Alignment.BottomCenter)) {
-                Button(
-                    onClick = {
-                        setImageCallback(EMPTY_IMAGE_URI)
-                    }
-                ) {
+                Button(onClick = { setImageCallback(EMPTY_IMAGE_URI) }) {
                     Text(stringResource(id = R.string.remove_image))
                 }
                 val localContext = LocalContext.current
                 Button(
                     onClick = {
-                        imageUri.value?.let { saveImageCallback(it, localContext) }
+//                        imageUri.value?.let { saveImageCallback(it, localContext) }
                         setImageCallback(EMPTY_IMAGE_URI)
-                        Toast.makeText(localContext, "Photo has been saved!", Toast.LENGTH_LONG).show()
+                        Toast
+                            .makeText(localContext, "Photo has been saved!", Toast.LENGTH_LONG)
+                            .show()
                     }
                 ) {
                     Text(stringResource(id = R.string.save_image))
@@ -62,14 +62,20 @@ fun CameraTabScreen(
             }
         }
     } else {
-        CameraCapture(
-            modifier = Modifier,
-            onImageFile = { file ->
-                setImageCallback(file.toUri())
-            }
-        )
+        if (renderer != null) {
+            CameraCapture(
+                modifier = Modifier,
+                onImageFile = { file ->
+                    setImageCallback(file.toUri())
+                },
+                surfaceView = surfaceView,
+                renderer = renderer,
+                takePictureCallback = saveImageCallback,
+            )
+        }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
@@ -81,7 +87,10 @@ fun CameraTabScreenPreview() {
         CameraTabScreen(
             uiState = uiState,
             setImageCallback = {},
-            saveImageCallback = { _: Uri, _: Context -> },
+            saveImageCallback = {},
+            surfaceView = null,
+            renderer = null,
         )
     }
 }
+
