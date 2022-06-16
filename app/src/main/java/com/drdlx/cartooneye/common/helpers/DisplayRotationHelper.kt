@@ -18,12 +18,25 @@ import com.google.ar.core.Session
  */
 class DisplayRotationHelper(context: Context) :
     DisplayListener {
+
     private var viewportChanged = false
     private var viewportWidth = 0
     private var viewportHeight = 0
     private val display: Display
     private val displayManager: DisplayManager
     private val cameraManager: CameraManager
+
+    /**
+     * Constructs the DisplayRotationHelper but does not register the listener yet.
+     *
+     * @param context the Android [Context].
+     */
+    init {
+        displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+        cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        display = windowManager.defaultDisplay
+    }
 
     /** Registers the display listener. Should be called from [Activity.onResume].  */
     fun onResume() {
@@ -115,15 +128,4 @@ class DisplayRotationHelper(context: Context) :
         viewportChanged = true
     }
 
-    /**
-     * Constructs the DisplayRotationHelper but does not register the listener yet.
-     *
-     * @param context the Android [Context].
-     */
-    init {
-        displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
-        cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        display = windowManager.defaultDisplay
-    }
 }

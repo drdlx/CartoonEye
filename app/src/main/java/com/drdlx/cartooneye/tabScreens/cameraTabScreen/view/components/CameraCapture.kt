@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.drdlx.cartooneye.utils.*
@@ -52,9 +53,16 @@ fun CameraCapture(
     ) {
 
         Box(modifier = modifier) {
-//            val lifecycleOwner = LocalLifecycleOwner.current
+            CameraPreview(
+                modifier = Modifier.fillMaxSize(),
+                renderer = renderer,
+                surfaceView = surfaceView,
+            )
+            // TODO hidden for now, the button's functionality has been transferred to a separate task
+            /*
+            val lifecycleOwner = LocalLifecycleOwner.current
             val coroutineScope = rememberCoroutineScope()
-//            var previewUseCase by remember { mutableStateOf<UseCase>(Preview.Builder().build()) }
+            lifecycleOwner.lifecycle.currentState
 
             val imageCaptureUseCase by remember {
                 mutableStateOf(
@@ -64,16 +72,6 @@ fun CameraCapture(
                 )
             }
 
-            CameraPreview(
-                modifier = Modifier.fillMaxSize(),
-                renderer = renderer,
-                onUseCase = {
-//                    renderer = it
-//                    previewUseCase = it
-                },
-                surfaceView = surfaceView,
-                session = null,
-            )
             CapturePictureButton(
                 modifier = Modifier
                     .size(100.dp)
@@ -82,27 +80,14 @@ fun CameraCapture(
                 onClick = {
                     coroutineScope.launch {
                         takePictureCallback()
-                        /*imageCaptureUseCase.takePicture(executor = context.executor).also {
+                        imageCaptureUseCase.takePicture(executor = context.executor).also {
                             onImageFile(it)
-                        }*/
+                        }
                     }
                 }
             )
-//            LaunchedEffect(renderer) {
-//                renderer.destroySession()
-//                renderer.initSession()
-//                renderer.configSession()
-                /*val cameraProvider = context.getCameraProvider()
-                try {
-                    // Must unbind the use-cases before rebinding them.
-                    cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(
-                        lifecycleOwner, cameraSelector, previewUseCase, imageCaptureUseCase
-                    )
-                } catch (exception: Exception) {
-                    Log.e("CameraCapture", "Failed to bind camera use cases", exception)
-                }*/
-//            }
+            */
+
         }
     }
 }
