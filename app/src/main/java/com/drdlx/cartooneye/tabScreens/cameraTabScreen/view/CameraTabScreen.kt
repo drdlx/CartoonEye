@@ -1,5 +1,6 @@
 package com.drdlx.cartooneye.tabScreens.cameraTabScreen.view
 
+import android.content.Context
 import android.net.Uri
 import android.opengl.GLSurfaceView
 import android.widget.Toast
@@ -25,18 +26,21 @@ import com.drdlx.cartooneye.tabScreens.cameraTabScreen.view.components.CameraCap
 import com.drdlx.cartooneye.utils.EMPTY_IMAGE_URI
 import com.drdlx.cartooneye.R
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CameraTabUiState
+import com.google.ar.core.Session
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun CameraTabScreen(
     uiState: CameraTabUiState,
     setImageCallback: (Uri) -> Unit,
-    saveImageCallback: () -> Unit,
+    saveImageCallback: (Uri, Context) -> Unit,
     surfaceView: GLSurfaceView?,
+    session: Session?,
     renderer: GLSurfaceView.Renderer?,
 ) {
     val imageUri = uiState.currentPictureUri.observeAsState()
     if (imageUri.value != EMPTY_IMAGE_URI) {
+
         Box(modifier = Modifier) {
             Image(
                 modifier = Modifier.fillMaxSize(),
@@ -50,7 +54,9 @@ fun CameraTabScreen(
                 val localContext = LocalContext.current
                 Button(
                     onClick = {
-//                        imageUri.value?.let { saveImageCallback(it, localContext) }
+                        imageUri.value?.let {
+                            saveImageCallback(it, localContext)
+                        }
                         setImageCallback(EMPTY_IMAGE_URI)
                         Toast
                             .makeText(localContext, "Photo has been saved!", Toast.LENGTH_LONG)
@@ -62,16 +68,19 @@ fun CameraTabScreen(
             }
         }
     } else {
-        if (renderer != null) {
+        if (renderer != null && session != null) {
             CameraCapture(
                 modifier = Modifier,
                 onImageFile = { file ->
+                    println(file)
                     setImageCallback(file.toUri())
                 },
                 surfaceView = surfaceView,
                 renderer = renderer,
-                takePictureCallback = saveImageCallback,
+                session = session,
             )
+        } else {
+            println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         }
     }
 }
@@ -87,9 +96,10 @@ fun CameraTabScreenPreview() {
         CameraTabScreen(
             uiState = uiState,
             setImageCallback = {},
-            saveImageCallback = {},
+            saveImageCallback = { _: Uri, _: Context -> } ,
             surfaceView = null,
             renderer = null,
+            session = null,
         )
     }
 }

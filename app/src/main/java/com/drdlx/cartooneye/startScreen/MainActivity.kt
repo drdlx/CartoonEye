@@ -1,10 +1,15 @@
 package com.drdlx.cartooneye.startScreen
 
 //import com.drdlx.cartooneye.common.helpers.SnackbarHelper
+
+import android.graphics.Bitmap
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -22,13 +27,11 @@ import com.drdlx.cartooneye.mainScreens.mainScreen.view.MainScreen
 import com.drdlx.cartooneye.navigation.AppNavigation
 import com.drdlx.cartooneye.navigation.routeObjects.AppScreens
 import com.drdlx.cartooneye.navigation.routeObjects.popRouteName
-import com.drdlx.cartooneye.utils.ARFacesRenderer
 import com.drdlx.cartooneye.utils.ArActivityStorage
 import com.drdlx.cartooneye.utils.AugmentedFaceRenderer
 import com.google.ar.core.*
 import com.google.ar.core.Config.AugmentedFaceMode
 import com.google.ar.core.exceptions.*
-import com.google.ar.sceneform.FrameTime
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.koin.android.ext.android.inject
@@ -37,13 +40,13 @@ import java.util.*
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
+
 class MainActivity : ComponentActivity(), GLSurfaceView.Renderer {
 
     companion object {
         private const val launchEffectName = "Navigator"
         private const val TAG = "MainActivity"
     }
-
 
     // Rendering. The Renderers are created here, and initialized when the GL surface is created.
     private var surfaceView: GLSurfaceView? = null
@@ -74,7 +77,20 @@ class MainActivity : ComponentActivity(), GLSurfaceView.Renderer {
         ArActivityStorage.setActivity(this)
         displayRotationHelper = DisplayRotationHelper(this)
 
-        surfaceView = GLSurfaceView(this)
+        surfaceView = GLSurfaceView(this).also { surfaceView ->
+            surfaceView.preserveEGLContextOnPause = true
+            surfaceView.setEGLContextClientVersion(2)
+            surfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0) // Alpha used for plane blending.
+            surfaceView.setRenderer(this)
+            surfaceView.renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
+            surfaceView.setWillNotDraw(false)
+
+            surfaceView.layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+
+        }
 
         setContent {
 
@@ -103,26 +119,14 @@ class MainActivity : ComponentActivity(), GLSurfaceView.Renderer {
             ) {
                 composable(route = AppScreens.CameraScreen.route) {
                     val renderer = this@MainActivity as GLSurfaceView.Renderer
-                    MainScreen(surfaceView = surfaceView, renderer = renderer, saveImageCallback = { saveGeneratedImage() })
+                    MainScreen(
+                        surfaceView = surfaceView,
+                        renderer = renderer,
+                        session = session,
+                    )
                 }
             }
 
-        }
-    }
-
-    fun saveGeneratedImage() {
-        surfaceView?.queueEvent {
-            if (session != null) {
-                val frame = session?.update()
-                if (frame != null) {
-                    val image = frame.acquireCameraImage()
-                    val imageFormat = image.format
-                    Log.d(TAG, "imageFormat: $imageFormat")
-                    if (imageFormat == ImageFormat.YUV_420_888) {
-                        Log.d("ImageFormat", "Image format is YUV_420_888");
-                    }
-                } else Log.e(TAG, "Frame is null")
-            } else Log.e(TAG, "Session is null")
         }
     }
 
@@ -213,7 +217,6 @@ class MainActivity : ComponentActivity(), GLSurfaceView.Renderer {
     override fun onPause() {
         super.onPause()
 
-
         if (session != null) {
             // Note that the order matters - GLSurfaceView is paused first so that it does not try
             // to query the session. If Session is paused before GLSurfaceView, GLSurfaceView may
@@ -267,6 +270,9 @@ class MainActivity : ComponentActivity(), GLSurfaceView.Renderer {
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         displayRotationHelper!!.onSurfaceChanged(width, height)
         GLES20.glViewport(0, 0, width, height)
+        ArActivityStorage.setDimensions(width, height)
+        /*mWidth = width
+        mHeight = height*/
     }
 
     override fun onDrawFrame(gl: GL10?) {
@@ -375,4 +381,5 @@ class MainActivity : ComponentActivity(), GLSurfaceView.Renderer {
         config.augmentedFaceMode = AugmentedFaceMode.MESH3D
         session!!.configure(config)
     }
+
 }

@@ -22,7 +22,7 @@ fun CameraPreview(
             modifier = modifier,
             factory = { context ->
                 
-                surfaceView.apply {
+                /*surfaceView.apply {
                     // Set up renderer.
                     this.preserveEGLContextOnPause = true
                     this.setEGLContextClientVersion(2)
@@ -38,13 +38,13 @@ fun CameraPreview(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
-                }
-
+                }*/
                 surfaceView
             },
             update = {
+                /*it.onPause()
                 it.onResume()
-                println("Update")
+                println("Update")*/
 
             }
         )

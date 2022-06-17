@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.compose.rememberNavController
@@ -17,12 +18,13 @@ import com.drdlx.cartooneye.mainScreens.mainScreen.view.components.BottomBarItem
 import com.drdlx.cartooneye.mainScreens.mainScreen.view.components.BottomNavBar
 import com.drdlx.cartooneye.mainScreens.mainScreen.view.components.TopBar
 import com.drdlx.cartooneye.ui.theme.CartoonEyeTheme
+import com.google.ar.core.Session
 
 @Composable
 fun MainScreen(
     surfaceView: GLSurfaceView?,
-    renderer: GLSurfaceView.Renderer,
-    saveImageCallback: () -> Unit,
+    renderer: GLSurfaceView.Renderer?,
+    session: Session?,
 ) {
     val currentTabVal = remember {
         MutableLiveData(BottomBarItem.CameraTabItem.route)
@@ -57,20 +59,22 @@ fun MainScreen(
                     PaddingValues(0.dp, 0.dp, 0.dp, it.calculateBottomPadding())
                 )
             ) {
-                TabsNavigation(
-                    navController = tabsNavigator,
-                    surfaceView = surfaceView,
-                    renderer = renderer,
-                    saveImageCallback = saveImageCallback,
-                )
+                if (renderer != null && session != null) {
+                    TabsNavigation(
+                        navController = tabsNavigator,
+                        surfaceView = surfaceView,
+                        renderer = renderer,
+                        session = session,
+                    )
+                }
             }
         }
     }
 }
 
-/*
+
 @Preview
 @Composable
 fun MainScreenPreview() {
-    MainScreen(surfaceView, session)
-}*/
+    MainScreen(null, null,null)
+}
