@@ -118,11 +118,9 @@ class MainActivity : ComponentActivity(), GLSurfaceView.Renderer {
                 startDestination = AppScreens.CameraScreen.route
             ) {
                 composable(route = AppScreens.CameraScreen.route) {
-                    val renderer = this@MainActivity as GLSurfaceView.Renderer
                     MainScreen(
                         surfaceView = surfaceView,
-                        renderer = renderer,
-                        session = session,
+                        restartActivityCallback = { restartActivity() }
                     )
                 }
             }
@@ -210,7 +208,7 @@ class MainActivity : ComponentActivity(), GLSurfaceView.Renderer {
             return
         }
 
-//        surfaceView!!.onResume()
+        surfaceView!!.onResume()
         displayRotationHelper!!.onResume()
     }
 
@@ -380,6 +378,10 @@ class MainActivity : ComponentActivity(), GLSurfaceView.Renderer {
         val config = Config(session)
         config.augmentedFaceMode = AugmentedFaceMode.MESH3D
         session!!.configure(config)
+    }
+
+    private fun restartActivity() {
+        this.recreate()
     }
 
 }

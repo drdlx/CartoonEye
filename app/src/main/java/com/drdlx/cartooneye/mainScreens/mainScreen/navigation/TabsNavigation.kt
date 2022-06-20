@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.drdlx.cartooneye.mainScreens.mainScreen.model.VoidCallback
 import com.drdlx.cartooneye.navigation.routeObjects.MainScreenTabRoute
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.view.CameraTabScreen
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.viewModel.CameraTabViewModel
@@ -17,8 +18,7 @@ import org.koin.androidx.compose.getViewModel
 fun TabsNavigation(
     navController: NavHostController,
     surfaceView: GLSurfaceView?,
-    renderer: GLSurfaceView.Renderer?,
-    session: Session?,
+    restartActivityCallback: VoidCallback,
 ) {
     NavHost(navController, startDestination = MainScreenTabRoute.CameraTab.name) {
         composable(route = MainScreenTabRoute.CameraTab.name) {
@@ -28,8 +28,7 @@ fun TabsNavigation(
                 setImageCallback = viewModel::changeCurrentPicture,
                 saveImageCallback = viewModel::saveCurrentPicture,
                 surfaceView = surfaceView,
-                renderer = renderer,
-                session = session,
+                restartActivityCallback = restartActivityCallback,
             )
         }
         composable(route = MainScreenTabRoute.GalleryTab.name) {
