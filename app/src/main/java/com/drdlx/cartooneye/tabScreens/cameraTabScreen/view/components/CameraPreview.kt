@@ -1,43 +1,52 @@
 package com.drdlx.cartooneye.tabScreens.cameraTabScreen.view.components
 
+import android.opengl.GLSurfaceView
 import android.view.ViewGroup
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.Preview
-import androidx.camera.view.PreviewView
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import com.drdlx.cartooneye.utils.getCameraProvider
-import kotlinx.coroutines.launch
-import android.util.Log
-import androidx.camera.core.UseCase
+import com.drdlx.cartooneye.utils.ARFacesRenderer
+import com.google.ar.core.Session
 
 @Composable
 fun CameraPreview(
     modifier: Modifier = Modifier,
-    scaleType: PreviewView.ScaleType = PreviewView.ScaleType.FILL_CENTER,
-    onUseCase: (UseCase) -> Unit = { }
+    renderer: GLSurfaceView.Renderer,
+    surfaceView: GLSurfaceView?,
 ) {
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            val previewView = PreviewView(context).apply {
-                this.scaleType = scaleType
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
+
+    val localContext = LocalContext.current.applicationContext
+    if (surfaceView != null) {
+        AndroidView(
+            modifier = modifier,
+            factory = { context ->
+                
+                surfaceView.apply {
+                    // Set up renderer.
+                    this.preserveEGLContextOnPause = true
+                    this.setEGLContextClientVersion(2)
+                    this.setEGLConfigChooser(
+                        8, 8, 8, 8, 16, 0
+                    ) // Alpha used for plane blending.
+
+                    this.setRenderer(renderer)
+                    this.renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
+                    this.setWillNotDraw(false)
+
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                }
+
+                surfaceView
+            },
+            update = {
+                it.onResume()
+                println("Update")
+
             }
-            onUseCase(
-                Preview.Builder()
-                    .build()
-                    .also {
-                        it.setSurfaceProvider(previewView.surfaceProvider)
-                    }
-            )
-            previewView
-        }
-    )
+        )
+    }
 }

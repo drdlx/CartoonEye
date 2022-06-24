@@ -3,27 +3,22 @@ package com.drdlx.cartooneye.tabScreens.cameraTabScreen.view.components
 import android.Manifest
 import android.content.Intent
 import android.net.Uri
+import android.opengl.GLSurfaceView
 import android.provider.Settings
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.Preview
-import androidx.camera.core.UseCase
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import com.drdlx.cartooneye.utils.getCameraProvider
-import android.util.Log
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.drdlx.cartooneye.utils.Permission
-import com.drdlx.cartooneye.utils.executor
-import com.drdlx.cartooneye.utils.takePicture
+import com.drdlx.cartooneye.utils.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import kotlinx.coroutines.launch
 import java.io.File
@@ -33,7 +28,10 @@ import java.io.File
 fun CameraCapture(
     modifier: Modifier = Modifier,
     cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
-    onImageFile: (File) -> Unit = { }
+    onImageFile: (File) -> Unit = { },
+    surfaceView: GLSurfaceView?,
+    renderer: GLSurfaceView.Renderer,
+    takePictureCallback: () -> Unit
 ) {
     val context = LocalContext.current
     Permission(
@@ -55,9 +53,17 @@ fun CameraCapture(
     ) {
 
         Box(modifier = modifier) {
+            CameraPreview(
+                modifier = Modifier.fillMaxSize(),
+                renderer = renderer,
+                surfaceView = surfaceView,
+            )
+            // TODO hidden for now, the button's functionality has been transferred to a separate task
+            /*
             val lifecycleOwner = LocalLifecycleOwner.current
             val coroutineScope = rememberCoroutineScope()
-            var previewUseCase by remember { mutableStateOf<UseCase>(Preview.Builder().build()) }
+            lifecycleOwner.lifecycle.currentState
+
             val imageCaptureUseCase by remember {
                 mutableStateOf(
                     ImageCapture.Builder()
@@ -66,12 +72,6 @@ fun CameraCapture(
                 )
             }
 
-            CameraPreview(
-                modifier = Modifier.fillMaxSize(),
-                onUseCase = {
-                    previewUseCase = it
-                }
-            )
             CapturePictureButton(
                 modifier = Modifier
                     .size(100.dp)
@@ -79,24 +79,15 @@ fun CameraCapture(
                     .align(Alignment.BottomCenter),
                 onClick = {
                     coroutineScope.launch {
+                        takePictureCallback()
                         imageCaptureUseCase.takePicture(executor = context.executor).also {
                             onImageFile(it)
                         }
                     }
                 }
             )
-            LaunchedEffect(previewUseCase) {
-                val cameraProvider = context.getCameraProvider()
-                try {
-                    // Must unbind the use-cases before rebinding them.
-                    cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(
-                        lifecycleOwner, cameraSelector, previewUseCase, imageCaptureUseCase
-                    )
-                } catch (exception: Exception) {
-                    Log.e("CameraCapture", "Failed to bind camera use cases", exception)
-                }
-            }
+            */
+
         }
     }
 }
