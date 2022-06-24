@@ -1,7 +1,10 @@
 package com.drdlx.cartooneye.tabScreens.cameraTabScreen.viewModel
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.ImageDecoder
+import android.graphics.drawable.BitmapDrawable
+import android.media.Image
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -23,6 +26,7 @@ class CameraTabViewModel(
     )
 
     fun changeCurrentPicture(uri: Uri) {
+        println(uri)
         currentPictureUri.value = uri
     }
 
