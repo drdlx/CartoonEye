@@ -19,6 +19,7 @@ fun TabsNavigation(
     navController: NavHostController,
     surfaceView: GLSurfaceView?,
     restartActivityCallback: VoidCallback,
+    recordingVideoCallback: VoidCallback,
 ) {
     NavHost(navController, startDestination = MainScreenTabRoute.CameraTab.name) {
         composable(route = MainScreenTabRoute.CameraTab.name) {
@@ -29,6 +30,7 @@ fun TabsNavigation(
                 saveImageCallback = viewModel::saveCurrentPicture,
                 surfaceView = surfaceView,
                 restartActivityCallback = restartActivityCallback,
+                recordingVideoCallback = recordingVideoCallback,
             )
         }
         composable(route = MainScreenTabRoute.GalleryTab.name) {

@@ -37,6 +37,7 @@ fun CameraTabScreen(
     saveImageCallback: (Uri, Context) -> Unit,
     surfaceView: GLSurfaceView?,
     restartActivityCallback: VoidCallback,
+    recordingVideoCallback: VoidCallback,
 ) {
     val imageUri = uiState.currentPictureUri.observeAsState()
     if (imageUri.value != EMPTY_IMAGE_URI) {
@@ -79,6 +80,7 @@ fun CameraTabScreen(
                 setImageCallback(file.toUri())
             },
             surfaceView = surfaceView,
+            recordingVideoCallback = recordingVideoCallback,
         )
     }
 }
@@ -97,6 +99,7 @@ fun CameraTabScreenPreview() {
             saveImageCallback = { _: Uri, _: Context -> } ,
             surfaceView = null,
             restartActivityCallback = {},
+            recordingVideoCallback = {},
         )
     }
 }

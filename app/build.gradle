@@ -103,8 +103,12 @@ dependencies {
     // https://github.com/javagl/Obj
     implementation 'de.javagl:obj:0.2.1'
 
-    testImplementation 'junit:junit:4.13.2'
+    //didn't find the way to get it started w/out problems, so I gave up
+//    implementation 'com.github.spaceLenny:recordablesurfaceview:-SNAPSHOT'
+
+
     testImplementation "io.mockk:mockk:1.12.4"
+    testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
     testImplementation 'org.robolectric:robolectric:4.8'
 

@@ -1,17 +1,27 @@
 package com.drdlx.cartooneye.utils
 
+import android.content.ContentValues
 import android.graphics.Bitmap
 import android.graphics.ImageFormat.NV21
 import android.graphics.Rect
 import android.graphics.YuvImage
 import android.media.Image
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
+import com.drdlx.cartooneye.startScreen.MainActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.Executor
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -57,40 +67,107 @@ suspend fun makeTemporaryPicture(bitmap: Bitmap): File = withContext(Dispatchers
             fileOutputStream.close()
             file
         }.getOrElse { ex ->
-            Log.e("TakePicture", "Failed to create temporary file", ex)
+            Log.e("TakePicture", "Failed to create temporary image file", ex)
             File("/dev/null")
         }
 
 }
 
-fun jpegByteArrayFrom(yuv420_888: Image): ByteArray =
-    yuv420_888.nv21ByteArray
-        .let { YuvImage(it, NV21, yuv420_888.width, yuv420_888.height, null) }
-        .getJpegDataWithQuality(100)
-
-private val Image.nv21ByteArray
-    get() = ByteArray(width * height * 3 / 2).also {
-        val vPlane = planes[2]
-        val y = planes[0].buffer.apply { rewind() }
-        val u = planes[1].buffer.apply { rewind() }
-        val v = vPlane.buffer.apply { rewind() }
-        y.get(it, 0, y.capacity()) // copy Y components
-        if (vPlane.pixelStride == 2) {
-            // Both of U and V are interleaved data, so copying V makes VU series but last U
-            v.get(it, y.capacity(), v.capacity())
-            it[it.size - 1] = u.get(u.capacity() - 1) // put last U
-        } else { // vPlane.pixelStride == 1
-            var offset = it.size - 1
-            var i = v.capacity()
-            while (i-- != 0) { // make VU interleaved data into ByteArray
-                it[offset - 0] = u[i]
-                it[offset - 1] = v[i]
-                offset -= 2
-            }
+/*private fun createMp4File(): Uri? {
+    // Since we use legacy external storage for Android 10,
+    // we still need to request for storage permission on Android 10.
+    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+        if (!checkAndRequestStoragePermission()) {
+            Log.i(TAG, String.format(
+                "Didn't createMp4File. No storage permission, API Level = %d",
+                Build.VERSION.SDK_INT));
+            return null;
         }
     }
 
-private fun YuvImage.getJpegDataWithQuality(quality: Int) =
-    ByteArrayOutputStream().also {
-        compressToJpeg(Rect(0, 0, width, height), quality, it)
-    }.toByteArray()
+    val dateFormat = SimpleDateFormat("yyyyMMdd_HHmmss")
+    val mp4FileName = "arcore-" + dateFormat.format(Date()).toString() + ".mp4"
+    val resolver = this.contentResolver
+    var videoCollection: Uri? = null
+    videoCollection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        MediaStore.Video.Media.getContentUri(
+            MediaStore.VOLUME_EXTERNAL_PRIMARY
+        )
+    } else {
+        MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+    }
+
+    // Create a new Media file record.
+    val newMp4FileDetails = ContentValues()
+    newMp4FileDetails.put(MediaStore.Video.Media.DISPLAY_NAME, mp4FileName)
+    newMp4FileDetails.put(MediaStore.Video.Media.MIME_TYPE, MP4_VIDEO_MIME_TYPE)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        // The Relative_Path column is only available since API Level 29.
+        newMp4FileDetails.put(
+            MediaStore.Video.Media.RELATIVE_PATH,
+            Environment.DIRECTORY_MOVIES
+        )
+    } else {
+        // Use the Data column to set path for API Level <= 28.
+        val mp4FileDir: File =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
+        val absoluteMp4FilePath = File(mp4FileDir, mp4FileName).absolutePath
+        newMp4FileDetails.put(MediaStore.Video.Media.DATA, absoluteMp4FilePath)
+    }
+    val newMp4FileUri = resolver.insert(videoCollection, newMp4FileDetails)
+
+    // Ensure that this file exists and can be written.
+    if (newMp4FileUri == null) {
+        Log.e(
+            TAG,
+            String.format(
+                "Failed to insert Video entity in MediaStore. API Level = %d",
+                Build.VERSION.SDK_INT
+            )
+        )
+        return null
+    }
+
+    // This call ensures the file exist before we pass it to the ARCore API.
+    if (!testFileWriteAccess(newMp4FileUri)) {
+        return null
+    }
+    Log.d(
+        TAG,
+        String.format(
+            "createMp4File = %s, API Level = %d",
+            newMp4FileUri,
+            Build.VERSION.SDK_INT
+        )
+    )
+    return newMp4FileUri
+}
+
+// Test if the file represented by the content Uri can be open with write access.
+private fun testFileWriteAccess(contentUri: Uri): Boolean {
+    try {
+        this.contentResolver.openOutputStream(contentUri).use { mp4File ->
+            Log.d(
+                MainActivity.TAG,
+                String.format("Success in testFileWriteAccess %s", contentUri.toString())
+            )
+            return true
+        }
+    } catch (e: FileNotFoundException) {
+        Log.e(
+            MainActivity.TAG,
+            String.format(
+                "FileNotFoundException in testFileWriteAccess %s",
+                contentUri.toString()
+            ),
+            e
+        )
+    } catch (e: IOException) {
+        Log.e(
+            MainActivity.TAG,
+            String.format("IOException in testFileWriteAccess %s", contentUri.toString()),
+            e
+        )
+    }
+    return false
+}*/

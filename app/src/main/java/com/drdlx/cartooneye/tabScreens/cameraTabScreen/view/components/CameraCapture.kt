@@ -1,14 +1,12 @@
 package com.drdlx.cartooneye.tabScreens.cameraTabScreen.view.components
 
 import android.Manifest
-import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.provider.Settings
-import androidx.camera.core.CameraSelector
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Text
@@ -16,13 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat.recreate
+import com.drdlx.cartooneye.mainScreens.mainScreen.model.VoidCallback
 import com.drdlx.cartooneye.utils.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.ar.core.Session
 import kotlinx.coroutines.launch
 import java.io.File
 import java.nio.IntBuffer
@@ -36,6 +32,7 @@ fun CameraCapture(
     modifier: Modifier = Modifier,
     onImageFile: (File) -> Unit = { },
     surfaceView: GLSurfaceView?,
+    recordingVideoCallback: VoidCallback,
 ) {
     val context = LocalContext.current
     Permission(
@@ -70,9 +67,10 @@ fun CameraCapture(
                     .padding(16.dp)
                     .align(Alignment.BottomCenter),
                 onClick = {
-                    surfaceView?.queueEvent {
-                        val mWidth = ArActivityStorage.arWidth.value
-                        val mHeight = ArActivityStorage.arHeight.value
+                    recordingVideoCallback()
+                    /*surfaceView?.queueEvent {
+                        val mWidth = UtilsStorage.arWidth.value
+                        val mHeight = UtilsStorage.arHeight.value
                         val pixelData = IntArray(mWidth!! * mHeight!!)
 
                         // Read the pixels from the current GL frame.
@@ -102,7 +100,7 @@ fun CameraCapture(
                         coroutineScope.launch {
                             makeTemporaryPicture(bmp).also(onImageFile)
                         }
-                    }
+                    }*/
                 }
             )
         }

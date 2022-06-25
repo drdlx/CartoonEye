@@ -25,6 +25,7 @@ import com.google.ar.core.Session
 fun MainScreen(
     surfaceView: GLSurfaceView?,
     restartActivityCallback: VoidCallback,
+    recordingVideoCallback: VoidCallback,
 ) {
     val currentTabVal = remember {
         MutableLiveData(BottomBarItem.CameraTabItem.route)
@@ -63,6 +64,7 @@ fun MainScreen(
                     navController = tabsNavigator,
                     surfaceView = surfaceView,
                     restartActivityCallback = restartActivityCallback,
+                    recordingVideoCallback = recordingVideoCallback,
                 )
             }
         }
@@ -73,5 +75,5 @@ fun MainScreen(
 @Preview
 @Composable
 fun MainScreenPreview() {
-    MainScreen(null, {})
+    MainScreen(null, {}, {})
 }
