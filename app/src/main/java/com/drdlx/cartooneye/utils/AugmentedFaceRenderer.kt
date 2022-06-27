@@ -12,7 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ *//*
+
 package com.drdlx.cartooneye.utils
 
 import android.content.Context
@@ -24,7 +25,9 @@ import com.drdlx.cartooneye.common.rendering.ShaderUtil
 import com.google.ar.core.AugmentedFace
 import java.io.IOException
 
-/** Renders an AugmentedFace on screen in OpenGL.  */
+*/
+/** Renders an AugmentedFace on screen in OpenGL.  *//*
+
 class AugmentedFaceRenderer {
     private var modelViewUniform = 0
     private var modelViewProjectionUniform = 0
@@ -172,4 +175,4 @@ class AugmentedFaceRenderer {
             v[2] *= reciprocalLength
         }
     }
-}
+}*/

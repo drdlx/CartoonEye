@@ -16,9 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentManager
 import com.drdlx.cartooneye.mainScreens.mainScreen.model.VoidCallback
 import com.drdlx.cartooneye.utils.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.ar.sceneform.ArSceneView
+import com.google.ar.sceneform.ux.ArFragment
+import com.google.ar.sceneform.ux.ArFrontFacingFragment
 import kotlinx.coroutines.launch
 import java.io.File
 import java.nio.IntBuffer
@@ -30,8 +34,9 @@ private const val TAG = "CameraCapture"
 @Composable
 fun CameraCapture(
     modifier: Modifier = Modifier,
-    onImageFile: (File) -> Unit = { },
-    surfaceView: GLSurfaceView?,
+    captureImageCallback: (ArSceneView) -> Unit,
+    arFragment: ArFrontFacingFragment,
+    supportFragmentManager: FragmentManager,
     recordingVideoCallback: VoidCallback,
 ) {
     val context = LocalContext.current
@@ -56,10 +61,9 @@ fun CameraCapture(
         Box(modifier = modifier) {
             CameraPreview(
                 modifier = Modifier.fillMaxSize(),
-                surfaceView = surfaceView,
+                supportFragmentManager = supportFragmentManager,
+                arFragment = arFragment,
             )
-
-            val coroutineScope = rememberCoroutineScope()
 
             CapturePictureButton(
                 modifier = Modifier
@@ -67,7 +71,7 @@ fun CameraCapture(
                     .padding(16.dp)
                     .align(Alignment.BottomCenter),
                 onClick = {
-                    recordingVideoCallback()
+                    captureImageCallback(arFragment.arSceneView)
                     /*surfaceView?.queueEvent {
                         val mWidth = UtilsStorage.arWidth.value
                         val mHeight = UtilsStorage.arHeight.value

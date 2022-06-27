@@ -2,7 +2,6 @@ package com.drdlx.cartooneye.tabScreens.cameraTabScreen.view
 
 import android.content.Context
 import android.net.Uri
-import android.opengl.GLSurfaceView
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -19,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.MutableLiveData
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
@@ -27,7 +27,9 @@ import com.drdlx.cartooneye.utils.EMPTY_IMAGE_URI
 import com.drdlx.cartooneye.R
 import com.drdlx.cartooneye.mainScreens.mainScreen.model.VoidCallback
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CameraTabUiState
-import com.google.ar.core.Session
+import com.google.ar.sceneform.ArSceneView
+import com.google.ar.sceneform.ux.ArFragment
+import com.google.ar.sceneform.ux.ArFrontFacingFragment
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
@@ -35,7 +37,9 @@ fun CameraTabScreen(
     uiState: CameraTabUiState,
     setImageCallback: (Uri) -> Unit,
     saveImageCallback: (Uri, Context) -> Unit,
-    surfaceView: GLSurfaceView?,
+    captureImageCallback: (ArSceneView) -> Unit,
+    supportFragmentManager: FragmentManager?,
+    arFragment: ArFrontFacingFragment?,
     restartActivityCallback: VoidCallback,
     recordingVideoCallback: VoidCallback,
 ) {
@@ -73,15 +77,17 @@ fun CameraTabScreen(
             }
         }
     } else {
-        CameraCapture(
-            modifier = Modifier,
-            onImageFile = { file ->
-                println(file)
-                setImageCallback(file.toUri())
-            },
-            surfaceView = surfaceView,
-            recordingVideoCallback = recordingVideoCallback,
-        )
+        arFragment?.let {
+            supportFragmentManager?.let { fragmentManager ->
+                CameraCapture(
+                    modifier = Modifier,
+                    captureImageCallback = captureImageCallback,
+                    recordingVideoCallback = recordingVideoCallback,
+                    arFragment = it,
+                    supportFragmentManager = fragmentManager,
+                )
+            }
+        }
     }
 }
 
@@ -96,10 +102,12 @@ fun CameraTabScreenPreview() {
         CameraTabScreen(
             uiState = uiState,
             setImageCallback = {},
-            saveImageCallback = { _: Uri, _: Context -> } ,
-            surfaceView = null,
+            saveImageCallback = { _: Uri, _: Context -> },
+            captureImageCallback = {_: ArSceneView -> },
             restartActivityCallback = {},
             recordingVideoCallback = {},
+            supportFragmentManager = null,
+            arFragment = null,
         )
     }
 }

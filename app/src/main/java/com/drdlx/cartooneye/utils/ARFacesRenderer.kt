@@ -1,3 +1,4 @@
+/*
 package com.drdlx.cartooneye.utils
 
 import android.app.Activity
@@ -51,10 +52,14 @@ class ARFacesRenderer(val context: Context, private val activity: Activity) : GL
         // Prepare the rendering objects. This involves reading shaders, so may throw an IOException.
         try {
             // Create the texture and pass it to ARCore session to be filled during update().
-            backgroundRenderer.createOnGlThread( /*context=*/context)
+            backgroundRenderer.createOnGlThread( */
+/*context=*//*
+context)
             augmentedFaceRenderer.createOnGlThread(context, "models/freckles.png")
             augmentedFaceRenderer.setMaterialProperties(0.0f, 1.0f, 0.1f, 6.0f)
-            noseObject.createOnGlThread( /*context=*/context,
+            noseObject.createOnGlThread( */
+/*context=*//*
+context,
                 "models/nose.obj",
                 "models/nose_fur.png"
             )
@@ -201,7 +206,9 @@ class ARFacesRenderer(val context: Context, private val activity: Activity) : GL
 
         // Create the session and configure it to use a front-facing (selfie) camera.
         session = Session(
-            /* context= */context,
+            */
+/* context= *//*
+context,
             EnumSet.noneOf(Session.Feature::class.java)
         )
         val cameraConfigFilter = CameraConfigFilter(session)
@@ -258,4 +265,4 @@ class ARFacesRenderer(val context: Context, private val activity: Activity) : GL
         session = null
     }
 
-}
+}*/

@@ -12,7 +12,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ *//*
+
 package com.drdlx.cartooneye.common.rendering
 
 import android.content.Context
@@ -28,18 +29,26 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.*
 
-/** Renders an object loaded from an OBJ file in OpenGL.  */
+*/
+/** Renders an object loaded from an OBJ file in OpenGL.  *//*
+
 class ObjectRenderer {
-    /**
+    */
+/**
      * Blend mode.
      *
      * @see .setBlendMode
-     */
+     *//*
+
     enum class BlendMode {
-        /** Multiplies the destination color by the source alpha, without z-buffer writing.  */
+        */
+/** Multiplies the destination color by the source alpha, without z-buffer writing.  *//*
+
         Shadow,
 
-        /** Normal alpha blending with z-buffer writing.  */
+        */
+/** Normal alpha blending with z-buffer writing.  *//*
+
         AlphaBlending
     }
 
@@ -104,13 +113,15 @@ class ObjectRenderer {
     private var uvTransform: FloatArray? = null
     private var depthTextureId = 0
 
-    /**
+    */
+/**
      * Creates and initializes OpenGL resources needed for rendering the model.
      *
      * @param context Context for loading the shader and below-named model and texture assets.
      * @param objAssetName Name of the OBJ file containing the model geometry.
      * @param diffuseTextureAssetName Name of the PNG file containing the diffuse texture map.
-     */
+     *//*
+
     @Throws(IOException::class)
     fun createOnGlThread(
         context: Context,
@@ -199,16 +210,19 @@ class ObjectRenderer {
         Matrix.setIdentityM(modelMatrix, 0)
     }
 
-    /**
+    */
+/**
      * Selects the blending mode for rendering.
      *
      * @param blendMode The blending mode. Null indicates no blending (opaque rendering).
-     */
+     *//*
+
     fun setBlendMode(blendMode: BlendMode?) {
         this.blendMode = blendMode
     }
 
-    /**
+    */
+/**
      * Specifies whether to use the depth texture to perform depth-based occlusion of virtual objects
      * from real-world geometry.
      *
@@ -221,7 +235,8 @@ class ObjectRenderer {
      * @param context Context for loading the shader.
      * @param useDepthForOcclusion Specifies whether to use the depth texture to perform occlusion
      * during rendering of virtual objects.
-     */
+     *//*
+
     @Throws(IOException::class)
     fun setUseDepthForOcclusion(context: Context, useDepthForOcclusion: Boolean) {
         if (this.useDepthForOcclusion == useDepthForOcclusion) {
@@ -271,13 +286,15 @@ class ObjectRenderer {
         ShaderUtil.checkGLError(TAG, "Program parameters")
     }
 
-    /**
+    */
+/**
      * Updates the object model matrix and applies scaling.
      *
      * @param modelMatrix A 4x4 model-to-world transformation matrix, stored in column-major order.
      * @param scaleFactor A separate scaling factor to apply before the `modelMatrix`.
      * @see Matrix
-     */
+     *//*
+
     fun updateModelMatrix(modelMatrix: FloatArray?, scaleFactor: Float) {
         val scaleMatrix = FloatArray(16)
         Matrix.setIdentityM(scaleMatrix, 0)
@@ -287,7 +304,8 @@ class ObjectRenderer {
         Matrix.multiplyMM(this.modelMatrix, 0, modelMatrix, 0, scaleMatrix, 0)
     }
 
-    /**
+    */
+/**
      * Sets the surface characteristics of the rendered model.
      *
      * @param ambient Intensity of non-directional surface illumination.
@@ -295,7 +313,8 @@ class ObjectRenderer {
      * @param specular Specular (shiny) surface reflectivity.
      * @param specularPower Surface shininess. Larger values result in a smaller, sharper specular
      * highlight.
-     */
+     *//*
+
     fun setMaterialProperties(
         ambient: Float, diffuse: Float, specular: Float, specularPower: Float
     ) {
@@ -305,7 +324,8 @@ class ObjectRenderer {
         this.specularPower = specularPower
     }
 
-    /**
+    */
+/**
      * Draws the model.
      *
      * @param cameraView A 4x4 view matrix, in column-major order.
@@ -316,7 +336,8 @@ class ObjectRenderer {
      * @see .updateModelMatrix
      * @see .setMaterialProperties
      * @see Matrix
-     */
+     *//*
+
     @JvmOverloads
     fun draw(
         cameraView: FloatArray?,
@@ -465,4 +486,4 @@ class ObjectRenderer {
             v[2] *= reciprocalLength
         }
     }
-}
+}*/

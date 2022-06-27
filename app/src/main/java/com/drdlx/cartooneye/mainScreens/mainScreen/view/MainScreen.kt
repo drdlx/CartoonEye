@@ -1,6 +1,5 @@
 package com.drdlx.cartooneye.mainScreens.mainScreen.view
 
-import android.opengl.GLSurfaceView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -11,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.MutableLiveData
 import androidx.navigation.compose.rememberNavController
 import com.drdlx.cartooneye.mainScreens.mainScreen.model.VoidCallback
@@ -19,13 +19,16 @@ import com.drdlx.cartooneye.mainScreens.mainScreen.view.components.BottomBarItem
 import com.drdlx.cartooneye.mainScreens.mainScreen.view.components.BottomNavBar
 import com.drdlx.cartooneye.mainScreens.mainScreen.view.components.TopBar
 import com.drdlx.cartooneye.ui.theme.CartoonEyeTheme
-import com.google.ar.core.Session
+import com.google.ar.sceneform.ux.ArFragment
+import com.google.ar.sceneform.ux.ArFrontFacingFragment
 
 @Composable
 fun MainScreen(
-    surfaceView: GLSurfaceView?,
+//    surfaceView: GLSurfaceView?,
     restartActivityCallback: VoidCallback,
     recordingVideoCallback: VoidCallback,
+    supportFragmentManager: FragmentManager?,
+    arFragment: ArFrontFacingFragment?,
 ) {
     val currentTabVal = remember {
         MutableLiveData(BottomBarItem.CameraTabItem.route)
@@ -60,12 +63,19 @@ fun MainScreen(
                     PaddingValues(0.dp, 0.dp, 0.dp, it.calculateBottomPadding())
                 )
             ) {
-                TabsNavigation(
-                    navController = tabsNavigator,
-                    surfaceView = surfaceView,
-                    restartActivityCallback = restartActivityCallback,
-                    recordingVideoCallback = recordingVideoCallback,
-                )
+                supportFragmentManager?.let { fragmentManager ->
+                    arFragment?.let { fragment ->
+                        val sceneView = fragment.arSceneView
+                        val screenshot = sceneView
+                        TabsNavigation(
+                            navController = tabsNavigator,
+                            restartActivityCallback = restartActivityCallback,
+                            recordingVideoCallback = recordingVideoCallback,
+                            supportFragmentManager = fragmentManager,
+                            arFragment = fragment,
+                        )
+                    }
+                }
             }
         }
     }
@@ -75,5 +85,5 @@ fun MainScreen(
 @Preview
 @Composable
 fun MainScreenPreview() {
-    MainScreen(null, {}, {})
+    MainScreen({}, {}, null, null)
 }

@@ -1,7 +1,7 @@
 package com.drdlx.cartooneye.mainScreens.mainScreen.navigation
 
-import android.opengl.GLSurfaceView
 import androidx.compose.runtime.Composable
+import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -11,15 +11,17 @@ import com.drdlx.cartooneye.tabScreens.cameraTabScreen.view.CameraTabScreen
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.viewModel.CameraTabViewModel
 import com.drdlx.cartooneye.tabScreens.galleryTabScreen.view.GalleryTabScreen
 import com.drdlx.cartooneye.tabScreens.galleryTabScreen.viewModel.GalleryTabViewModel
-import com.google.ar.core.Session
+import com.google.ar.sceneform.ux.ArFrontFacingFragment
 import org.koin.androidx.compose.getViewModel
 
 @Composable
 fun TabsNavigation(
     navController: NavHostController,
-    surfaceView: GLSurfaceView?,
+//    surfaceView: GLSurfaceView?,
     restartActivityCallback: VoidCallback,
     recordingVideoCallback: VoidCallback,
+    arFragment: ArFrontFacingFragment,
+    supportFragmentManager: FragmentManager,
 ) {
     NavHost(navController, startDestination = MainScreenTabRoute.CameraTab.name) {
         composable(route = MainScreenTabRoute.CameraTab.name) {
@@ -28,9 +30,11 @@ fun TabsNavigation(
                 uiState = viewModel.uiState,
                 setImageCallback = viewModel::changeCurrentPicture,
                 saveImageCallback = viewModel::saveCurrentPicture,
-                surfaceView = surfaceView,
+                captureImageCallback = viewModel::captureImage,
                 restartActivityCallback = restartActivityCallback,
                 recordingVideoCallback = recordingVideoCallback,
+                supportFragmentManager = supportFragmentManager,
+                arFragment = arFragment,
             )
         }
         composable(route = MainScreenTabRoute.GalleryTab.name) {
