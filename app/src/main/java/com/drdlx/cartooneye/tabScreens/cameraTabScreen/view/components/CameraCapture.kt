@@ -7,6 +7,7 @@ import android.net.Uri
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.provider.Settings
+import android.view.View
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Text
@@ -21,6 +22,7 @@ import com.drdlx.cartooneye.mainScreens.mainScreen.model.VoidCallback
 import com.drdlx.cartooneye.utils.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.ar.sceneform.ArSceneView
+import com.google.ar.sceneform.SceneView
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.ArFrontFacingFragment
 import kotlinx.coroutines.launch
@@ -38,6 +40,7 @@ fun CameraCapture(
     arFragment: ArFrontFacingFragment,
     supportFragmentManager: FragmentManager,
     recordingVideoCallback: VoidCallback,
+    toggleRecording: (ArSceneView?) -> Unit,
 ) {
     val context = LocalContext.current
     Permission(
@@ -71,40 +74,8 @@ fun CameraCapture(
                     .padding(16.dp)
                     .align(Alignment.BottomCenter),
                 onClick = {
-                    captureImageCallback(arFragment.arSceneView)
-                    /*surfaceView?.queueEvent {
-                        val mWidth = UtilsStorage.arWidth.value
-                        val mHeight = UtilsStorage.arHeight.value
-                        val pixelData = IntArray(mWidth!! * mHeight!!)
-
-                        // Read the pixels from the current GL frame.
-                        val buf: IntBuffer = IntBuffer.wrap(pixelData)
-                        buf.position(0)
-                        GLES20.glReadPixels(
-                            0, 0, mWidth, mHeight,
-                            GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, buf
-                        )
-
-                        val bitmapData = IntArray(pixelData.size)
-                        for (i in 0 until mHeight) {
-                            for (j in 0 until mWidth) {
-                                val p = pixelData[i * mWidth + j]
-                                val b = p and 0x00ff0000 shr 16
-                                val r = p and 0x000000ff shl 16
-                                val ga = p and -0xff0100
-                                bitmapData[(mHeight - i - 1) * mWidth + j] = ga or r or b
-                            }
-                        }
-                        // Create a bitmap.
-                        val bmp = Bitmap.createBitmap(
-                            bitmapData,
-                            mWidth, mHeight, Bitmap.Config.ARGB_8888
-                        )
-
-                        coroutineScope.launch {
-                            makeTemporaryPicture(bmp).also(onImageFile)
-                        }
-                    }*/
+                    //captureImageCallback(arFragment.arSceneView)
+                        toggleRecording(arFragment.arSceneView)
                 }
             )
         }

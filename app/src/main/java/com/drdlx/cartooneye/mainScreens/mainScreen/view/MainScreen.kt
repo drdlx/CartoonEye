@@ -1,5 +1,6 @@
 package com.drdlx.cartooneye.mainScreens.mainScreen.view
 
+import android.view.View
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -19,6 +20,8 @@ import com.drdlx.cartooneye.mainScreens.mainScreen.view.components.BottomBarItem
 import com.drdlx.cartooneye.mainScreens.mainScreen.view.components.BottomNavBar
 import com.drdlx.cartooneye.mainScreens.mainScreen.view.components.TopBar
 import com.drdlx.cartooneye.ui.theme.CartoonEyeTheme
+import com.google.ar.sceneform.ArSceneView
+import com.google.ar.sceneform.SceneView
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.ArFrontFacingFragment
 
@@ -29,6 +32,7 @@ fun MainScreen(
     recordingVideoCallback: VoidCallback,
     supportFragmentManager: FragmentManager?,
     arFragment: ArFrontFacingFragment?,
+    toggleRecording: (ArSceneView?) -> Unit,
 ) {
     val currentTabVal = remember {
         MutableLiveData(BottomBarItem.CameraTabItem.route)
@@ -73,6 +77,7 @@ fun MainScreen(
                             recordingVideoCallback = recordingVideoCallback,
                             supportFragmentManager = fragmentManager,
                             arFragment = fragment,
+                            toggleRecording = toggleRecording,
                         )
                     }
                 }
@@ -85,5 +90,5 @@ fun MainScreen(
 @Preview
 @Composable
 fun MainScreenPreview() {
-    MainScreen({}, {}, null, null)
+    MainScreen({}, {}, null, null, {})
 }

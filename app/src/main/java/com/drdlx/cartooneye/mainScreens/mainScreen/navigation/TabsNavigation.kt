@@ -1,5 +1,6 @@
 package com.drdlx.cartooneye.mainScreens.mainScreen.navigation
 
+import android.view.View
 import androidx.compose.runtime.Composable
 import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavHostController
@@ -11,6 +12,8 @@ import com.drdlx.cartooneye.tabScreens.cameraTabScreen.view.CameraTabScreen
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.viewModel.CameraTabViewModel
 import com.drdlx.cartooneye.tabScreens.galleryTabScreen.view.GalleryTabScreen
 import com.drdlx.cartooneye.tabScreens.galleryTabScreen.viewModel.GalleryTabViewModel
+import com.google.ar.sceneform.ArSceneView
+import com.google.ar.sceneform.SceneView
 import com.google.ar.sceneform.ux.ArFrontFacingFragment
 import org.koin.androidx.compose.getViewModel
 
@@ -22,6 +25,7 @@ fun TabsNavigation(
     recordingVideoCallback: VoidCallback,
     arFragment: ArFrontFacingFragment,
     supportFragmentManager: FragmentManager,
+    toggleRecording: (ArSceneView?) -> Unit,
 ) {
     NavHost(navController, startDestination = MainScreenTabRoute.CameraTab.name) {
         composable(route = MainScreenTabRoute.CameraTab.name) {
@@ -35,6 +39,7 @@ fun TabsNavigation(
                 recordingVideoCallback = recordingVideoCallback,
                 supportFragmentManager = supportFragmentManager,
                 arFragment = arFragment,
+                toggleRecording = toggleRecording,
             )
         }
         composable(route = MainScreenTabRoute.GalleryTab.name) {

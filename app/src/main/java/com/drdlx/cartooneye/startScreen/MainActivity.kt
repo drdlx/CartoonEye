@@ -2,9 +2,14 @@ package com.drdlx.cartooneye.startScreen
 
 //import com.drdlx.cartooneye.common.helpers.SnackbarHelper
 
+import android.R
+import android.content.ContentValues
+import android.media.CamcorderProfile
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
@@ -16,12 +21,13 @@ import com.drdlx.cartooneye.mainScreens.mainScreen.view.MainScreen
 import com.drdlx.cartooneye.navigation.AppNavigation
 import com.drdlx.cartooneye.navigation.routeObjects.AppScreens
 import com.drdlx.cartooneye.navigation.routeObjects.popRouteName
+import com.drdlx.cartooneye.utils.VideoRecorder
 import com.google.ar.core.*
 import com.google.ar.sceneform.ArSceneView
+import com.google.ar.sceneform.SceneView
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.Texture
-import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.ArFrontFacingFragment
 import com.google.ar.sceneform.ux.AugmentedFaceNode
 import kotlinx.coroutines.flow.launchIn
@@ -48,6 +54,8 @@ class MainActivity : FragmentActivity() {
     private val facesNodes: HashMap<AugmentedFace, AugmentedFaceNode> = HashMap()
     private var arFragment: ArFrontFacingFragment? = null
 
+    private var videoRecorder = VideoRecorder()
+
     private val navigator: AppNavigation by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,6 +70,9 @@ class MainActivity : FragmentActivity() {
             it.setOnViewCreatedListener(this::onViewCreated)
             it.setOnAugmentedFaceUpdateListener(this::onAugmentedFaceTrackingUpdate)
         }
+
+        videoRecorder.setVideoQuality(CamcorderProfile.QUALITY_2160P, resources.configuration.orientation)
+        videoRecorder.setSceneView(arFragment?.arSceneView)
 
         setContent {
 
@@ -95,11 +106,19 @@ class MainActivity : FragmentActivity() {
                         recordingVideoCallback = { /*onClickRecord()*/ },
                         supportFragmentManager = fragmentManager,
                         arFragment = arFragment,
+                        toggleRecording = { sceneView -> toggleRecording(sceneView) }
                     )
                 }
             }
 
         }
+    }
+
+    override fun onPause() {
+        if (videoRecorder.isRecording) {
+            toggleRecording(null)
+        }
+        super.onPause()
     }
 
     private fun onViewCreated(arSceneView: ArSceneView) {
@@ -182,5 +201,41 @@ class MainActivity : FragmentActivity() {
             else -> {Log.d(TAG, "Tracking paused")}
         }
     }
+
+    /*
+   * Used as a handler for onClick, so the signature must match onClickListener.
+   */
+    private fun toggleRecording(unusedView: ArSceneView?) {
+        /*if (!arFragment.hasWritePermission()) {
+            Log.e(TAG, "Video recording requires the WRITE_EXTERNAL_STORAGE permission")
+            Toast.makeText(
+                this,
+                "Video recording requires the WRITE_EXTERNAL_STORAGE permission",
+                Toast.LENGTH_LONG
+            )
+                .show()
+            //arFragment.launchPermissionSettings()
+            return
+        }*/
+        unusedView?.let {
+            val recording = videoRecorder.onToggleRecord(it)
+            if (recording) {
+                //recordButton.setImageResource(R.drawable.round_stop)
+            } else {
+                //recordButton.setImageResource(R.drawable.round_videocam)
+                val videoPath = videoRecorder.videoPath!!.absolutePath
+                Toast.makeText(this, "Video saved: $videoPath", Toast.LENGTH_SHORT).show()
+                Log.d(TAG, "Video saved: $videoPath")
+
+                // Send  notification of updated content.
+                val values = ContentValues()
+                values.put(MediaStore.Video.Media.TITLE, "Sceneform Video")
+                values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+                values.put(MediaStore.Video.Media.DATA, videoPath)
+                contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
+            }
+        }
+    }
+
 
 }

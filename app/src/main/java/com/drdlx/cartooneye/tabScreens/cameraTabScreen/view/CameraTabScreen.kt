@@ -2,6 +2,7 @@ package com.drdlx.cartooneye.tabScreens.cameraTabScreen.view
 
 import android.content.Context
 import android.net.Uri
+import android.view.View
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,7 @@ import com.drdlx.cartooneye.R
 import com.drdlx.cartooneye.mainScreens.mainScreen.model.VoidCallback
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CameraTabUiState
 import com.google.ar.sceneform.ArSceneView
+import com.google.ar.sceneform.SceneView
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.ArFrontFacingFragment
 
@@ -42,6 +44,7 @@ fun CameraTabScreen(
     arFragment: ArFrontFacingFragment?,
     restartActivityCallback: VoidCallback,
     recordingVideoCallback: VoidCallback,
+    toggleRecording: (ArSceneView?) -> Unit,
 ) {
     val imageUri = uiState.currentPictureUri.observeAsState()
     if (imageUri.value != EMPTY_IMAGE_URI) {
@@ -85,6 +88,7 @@ fun CameraTabScreen(
                     recordingVideoCallback = recordingVideoCallback,
                     arFragment = it,
                     supportFragmentManager = fragmentManager,
+                    toggleRecording = toggleRecording,
                 )
             }
         }
@@ -108,6 +112,7 @@ fun CameraTabScreenPreview() {
             recordingVideoCallback = {},
             supportFragmentManager = null,
             arFragment = null,
+            toggleRecording = {},
         )
     }
 }
