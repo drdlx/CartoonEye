@@ -27,9 +27,7 @@ import com.google.ar.sceneform.ux.ArFrontFacingFragment
 
 @Composable
 fun MainScreen(
-//    surfaceView: GLSurfaceView?,
     restartActivityCallback: VoidCallback,
-    recordingVideoCallback: VoidCallback,
     supportFragmentManager: FragmentManager?,
     arFragment: ArFrontFacingFragment?,
     toggleRecording: (ArSceneView?) -> Unit,
@@ -74,7 +72,6 @@ fun MainScreen(
                         TabsNavigation(
                             navController = tabsNavigator,
                             restartActivityCallback = restartActivityCallback,
-                            recordingVideoCallback = recordingVideoCallback,
                             supportFragmentManager = fragmentManager,
                             arFragment = fragment,
                             toggleRecording = toggleRecording,
@@ -90,5 +87,5 @@ fun MainScreen(
 @Preview
 @Composable
 fun MainScreenPreview() {
-    MainScreen({}, {}, null, null, {})
+    MainScreen({},null, null, {})
 }

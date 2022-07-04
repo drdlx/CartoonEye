@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentManager
 import com.drdlx.cartooneye.mainScreens.mainScreen.model.VoidCallback
+import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CaptureButtonWorkMode
 import com.drdlx.cartooneye.utils.*
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.ar.sceneform.ArSceneView
@@ -39,8 +40,8 @@ fun CameraCapture(
     captureImageCallback: (ArSceneView) -> Unit,
     arFragment: ArFrontFacingFragment,
     supportFragmentManager: FragmentManager,
-    recordingVideoCallback: VoidCallback,
     toggleRecording: (ArSceneView?) -> Unit,
+    captureButtonWorkMode: CaptureButtonWorkMode,
 ) {
     val context = LocalContext.current
     Permission(
@@ -74,10 +75,16 @@ fun CameraCapture(
                     .padding(16.dp)
                     .align(Alignment.BottomCenter),
                 onClick = {
-                    //captureImageCallback(arFragment.arSceneView)
-                        toggleRecording(arFragment.arSceneView)
+                    when(captureButtonWorkMode) {
+                        CaptureButtonWorkMode.PHOTO -> captureImageCallback(arFragment.arSceneView)
+                        CaptureButtonWorkMode.VIDEO -> toggleRecording(arFragment.arSceneView)
+                    }
                 }
             )
+
+            Button(modifier = Modifier.align(Alignment.BottomEnd), onClick = { /*TODO*/ }) {
+                Text("Test")
+            }
         }
     }
 }

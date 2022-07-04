@@ -28,6 +28,7 @@ import com.drdlx.cartooneye.utils.EMPTY_IMAGE_URI
 import com.drdlx.cartooneye.R
 import com.drdlx.cartooneye.mainScreens.mainScreen.model.VoidCallback
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CameraTabUiState
+import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CaptureButtonWorkMode
 import com.google.ar.sceneform.ArSceneView
 import com.google.ar.sceneform.SceneView
 import com.google.ar.sceneform.ux.ArFragment
@@ -43,10 +44,10 @@ fun CameraTabScreen(
     supportFragmentManager: FragmentManager?,
     arFragment: ArFrontFacingFragment?,
     restartActivityCallback: VoidCallback,
-    recordingVideoCallback: VoidCallback,
     toggleRecording: (ArSceneView?) -> Unit,
 ) {
     val imageUri = uiState.currentPictureUri.observeAsState()
+    val captureButtonWorkMode = uiState.captureButtonWorkMode.observeAsState(CaptureButtonWorkMode.PHOTO)
     if (imageUri.value != EMPTY_IMAGE_URI) {
 
         Box(modifier = Modifier) {
@@ -58,7 +59,7 @@ fun CameraTabScreen(
             Row(modifier = Modifier.align(Alignment.BottomCenter)) {
                 Button(onClick = {
                     setImageCallback(EMPTY_IMAGE_URI)
-                    restartActivityCallback()
+//                    restartActivityCallback()
                 }) {
                     Text(stringResource(id = R.string.remove_image))
                 }
@@ -69,7 +70,7 @@ fun CameraTabScreen(
                             saveImageCallback(it, localContext)
                         }
                         setImageCallback(EMPTY_IMAGE_URI)
-                        restartActivityCallback()
+//                        restartActivityCallback()
                         Toast
                             .makeText(localContext, "Photo has been saved!", Toast.LENGTH_LONG)
                             .show()
@@ -85,10 +86,10 @@ fun CameraTabScreen(
                 CameraCapture(
                     modifier = Modifier,
                     captureImageCallback = captureImageCallback,
-                    recordingVideoCallback = recordingVideoCallback,
                     arFragment = it,
                     supportFragmentManager = fragmentManager,
                     toggleRecording = toggleRecording,
+                    captureButtonWorkMode = captureButtonWorkMode.value,
                 )
             }
         }
@@ -100,16 +101,16 @@ fun CameraTabScreen(
 @Composable
 fun CameraTabScreenPreview() {
     val uiState = CameraTabUiState(
-        currentPictureUri = MutableLiveData(EMPTY_IMAGE_URI)
+        currentPictureUri = MutableLiveData(EMPTY_IMAGE_URI),
+        captureButtonWorkMode = MutableLiveData(CaptureButtonWorkMode.PHOTO),
     )
     MaterialTheme {
         CameraTabScreen(
             uiState = uiState,
             setImageCallback = {},
             saveImageCallback = { _: Uri, _: Context -> },
-            captureImageCallback = {_: ArSceneView -> },
+            captureImageCallback = { },
             restartActivityCallback = {},
-            recordingVideoCallback = {},
             supportFragmentManager = null,
             arFragment = null,
             toggleRecording = {},

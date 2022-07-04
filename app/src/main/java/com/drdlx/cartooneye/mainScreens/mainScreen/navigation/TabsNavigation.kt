@@ -20,9 +20,7 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 fun TabsNavigation(
     navController: NavHostController,
-//    surfaceView: GLSurfaceView?,
     restartActivityCallback: VoidCallback,
-    recordingVideoCallback: VoidCallback,
     arFragment: ArFrontFacingFragment,
     supportFragmentManager: FragmentManager,
     toggleRecording: (ArSceneView?) -> Unit,
@@ -36,7 +34,6 @@ fun TabsNavigation(
                 saveImageCallback = viewModel::saveCurrentPicture,
                 captureImageCallback = viewModel::captureImage,
                 restartActivityCallback = restartActivityCallback,
-                recordingVideoCallback = recordingVideoCallback,
                 supportFragmentManager = supportFragmentManager,
                 arFragment = arFragment,
                 toggleRecording = toggleRecording,

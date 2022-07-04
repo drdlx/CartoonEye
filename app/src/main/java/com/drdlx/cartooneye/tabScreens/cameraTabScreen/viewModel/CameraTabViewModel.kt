@@ -1,9 +1,11 @@
 package com.drdlx.cartooneye.tabScreens.cameraTabScreen.viewModel
 
+import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.graphics.drawable.BitmapDrawable
+import android.media.CamcorderProfile
 import android.media.Image
 import android.net.Uri
 import android.os.Build
@@ -20,9 +22,15 @@ import com.drdlx.cartooneye.utils.EMPTY_IMAGE_URI
 import com.google.ar.sceneform.ArSceneView
 import org.koin.android.annotation.KoinViewModel
 import android.util.Log
+import android.widget.Toast
+import androidx.annotation.IntegerRes
 import androidx.core.net.toUri
 import androidx.lifecycle.viewModelScope
+import com.drdlx.cartooneye.startScreen.MainActivity
+import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CaptureButtonWorkMode
+import com.drdlx.cartooneye.utils.VideoRecorder
 import com.drdlx.cartooneye.utils.makeTemporaryPicture
+import com.google.ar.sceneform.ux.ArFragment
 import kotlinx.coroutines.launch
 
 @KoinViewModel
@@ -35,14 +43,19 @@ class CameraTabViewModel(
     }
 
     private val currentPictureUri = MutableLiveData(EMPTY_IMAGE_URI)
+    private val captureButtonWorkMode = MutableLiveData(CaptureButtonWorkMode.PHOTO)
 
     val uiState = CameraTabUiState(
-        currentPictureUri = currentPictureUri
+        currentPictureUri = currentPictureUri,
+        captureButtonWorkMode = captureButtonWorkMode
     )
 
     fun changeCurrentPicture(uri: Uri) {
-        println(uri)
         currentPictureUri.value = uri
+    }
+
+    fun changeCameraMode(mode: CaptureButtonWorkMode) {
+        captureButtonWorkMode.value = mode
     }
 
     fun saveCurrentPicture(uri: Uri, context: Context) {

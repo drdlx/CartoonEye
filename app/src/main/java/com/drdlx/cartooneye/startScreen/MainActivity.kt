@@ -1,7 +1,5 @@
 package com.drdlx.cartooneye.startScreen
 
-//import com.drdlx.cartooneye.common.helpers.SnackbarHelper
-
 import android.R
 import android.content.ContentValues
 import android.media.CamcorderProfile
@@ -48,6 +46,7 @@ class MainActivity : FragmentActivity() {
 
 
     private val loaders: MutableSet<CompletableFuture<*>> = HashSet()
+
     private var arSceneView: ArSceneView? = null
     private var faceTexture: Texture? = null
     private var faceModel: ModelRenderable? = null
@@ -101,9 +100,7 @@ class MainActivity : FragmentActivity() {
             ) {
                 composable(route = AppScreens.CameraScreen.route) {
                     MainScreen(
-//                        surfaceView = surfaceView,
                         restartActivityCallback = { restartActivity() },
-                        recordingVideoCallback = { /*onClickRecord()*/ },
                         supportFragmentManager = fragmentManager,
                         arFragment = arFragment,
                         toggleRecording = { sceneView -> toggleRecording(sceneView) }
@@ -154,10 +151,10 @@ class MainActivity : FragmentActivity() {
             .thenAccept { model: ModelRenderable ->
                 faceModel = model
             }
-            .exceptionally(Function<Throwable, Void?> { throwable: Throwable? ->
+            .exceptionally {
                 Toast.makeText(this, "Unable to load renderable", Toast.LENGTH_LONG).show()
                 null
-            })
+            }
         )
     }
 
@@ -167,13 +164,13 @@ class MainActivity : FragmentActivity() {
                 .setSource(this, Uri.parse("textures/freckles.png"))
                 .setUsage(Texture.Usage.COLOR_MAP)
                 .build()
-                .thenAccept(Consumer { texture: Texture ->
+                .thenAccept { texture: Texture ->
                     faceTexture = texture
-                })
-                .exceptionally(Function<Throwable, Void?> { throwable: Throwable? ->
+                }
+                .exceptionally {
                     Toast.makeText(this, "Unable to load texture", Toast.LENGTH_LONG).show()
                     null
-                })
+                }
         )
     }
 
@@ -206,23 +203,11 @@ class MainActivity : FragmentActivity() {
    * Used as a handler for onClick, so the signature must match onClickListener.
    */
     private fun toggleRecording(unusedView: ArSceneView?) {
-        /*if (!arFragment.hasWritePermission()) {
-            Log.e(TAG, "Video recording requires the WRITE_EXTERNAL_STORAGE permission")
-            Toast.makeText(
-                this,
-                "Video recording requires the WRITE_EXTERNAL_STORAGE permission",
-                Toast.LENGTH_LONG
-            )
-                .show()
-            //arFragment.launchPermissionSettings()
-            return
-        }*/
+
+        // TODO add write permission check
         unusedView?.let {
             val recording = videoRecorder.onToggleRecord(it)
-            if (recording) {
-                //recordButton.setImageResource(R.drawable.round_stop)
-            } else {
-                //recordButton.setImageResource(R.drawable.round_videocam)
+            if (!recording) {
                 val videoPath = videoRecorder.videoPath!!.absolutePath
                 Toast.makeText(this, "Video saved: $videoPath", Toast.LENGTH_SHORT).show()
                 Log.d(TAG, "Video saved: $videoPath")
