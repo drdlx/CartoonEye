@@ -7,11 +7,12 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -22,7 +23,6 @@ import com.drdlx.cartooneye.navigation.routeObjects.popRouteName
 import com.drdlx.cartooneye.utils.VideoRecorder
 import com.google.ar.core.*
 import com.google.ar.sceneform.ArSceneView
-import com.google.ar.sceneform.SceneView
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.Texture
@@ -33,8 +33,6 @@ import kotlinx.coroutines.flow.onEach
 import org.koin.android.ext.android.inject
 import java.util.*
 import java.util.concurrent.CompletableFuture
-import java.util.function.Consumer
-import java.util.function.Function
 
 
 class MainActivity : FragmentActivity() {
@@ -44,7 +42,6 @@ class MainActivity : FragmentActivity() {
         private const val TAG = "MainActivity"
     }
 
-
     private val loaders: MutableSet<CompletableFuture<*>> = HashSet()
 
     private var arSceneView: ArSceneView? = null
@@ -53,20 +50,20 @@ class MainActivity : FragmentActivity() {
     private val facesNodes: HashMap<AugmentedFace, AugmentedFaceNode> = HashMap()
     private var arFragment: ArFrontFacingFragment? = null
 
-    private var videoRecorder = VideoRecorder()
+    private val videoRecorder: VideoRecorder = VideoRecorder()
 
     private val navigator: AppNavigation by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        loadModels()
-        loadTextures()
-
-        val fragmentManager = this.supportFragmentManager
+        val fragmentManager = this.supportFragmentManager.also {
+            it.addFragmentOnAttachListener(this::onAttachFragment)
+            loadModels()
+            loadTextures()
+        }
 
         this.arFragment = ArFrontFacingFragment().also {
-            it.setOnViewCreatedListener(this::onViewCreated)
             it.setOnAugmentedFaceUpdateListener(this::onAugmentedFaceTrackingUpdate)
         }
 
@@ -103,12 +100,16 @@ class MainActivity : FragmentActivity() {
                         restartActivityCallback = { restartActivity() },
                         supportFragmentManager = fragmentManager,
                         arFragment = arFragment,
-                        toggleRecording = { sceneView -> toggleRecording(sceneView) }
+                        toggleRecording = { sceneView -> toggleRecording(sceneView) },
                     )
                 }
             }
 
         }
+    }
+
+    private fun onAttachFragment(fragmentManager: FragmentManager?, fragment: Fragment) {
+        arFragment?.setOnViewCreatedListener(this::onViewCreated)
     }
 
     override fun onPause() {

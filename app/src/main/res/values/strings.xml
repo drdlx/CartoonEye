@@ -10,5 +10,7 @@
     <string name="ok">@android:string/ok</string>
     <string name="remove_image">Remove image</string>
     <string name="save_image">Save image</string>
+    <string name="switch_to_video">Switch to video</string>
+    <string name="switch_to_photo">Switch to photo</string>
 
 </resources>

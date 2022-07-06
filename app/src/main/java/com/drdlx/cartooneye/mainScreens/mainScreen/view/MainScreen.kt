@@ -42,7 +42,7 @@ fun MainScreen(
     CartoonEyeTheme {
         // A surface container using the 'background' color from the theme
         Scaffold(
-            topBar = { TopBar() },
+            topBar = { },
             bottomBar = {
                 BottomNavBar(
                     currentTab.value ?: BottomBarItem.CameraTabItem.route
@@ -67,8 +67,6 @@ fun MainScreen(
             ) {
                 supportFragmentManager?.let { fragmentManager ->
                     arFragment?.let { fragment ->
-                        val sceneView = fragment.arSceneView
-                        val screenshot = sceneView
                         TabsNavigation(
                             navController = tabsNavigator,
                             restartActivityCallback = restartActivityCallback,
