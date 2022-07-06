@@ -28,14 +28,13 @@ fun TabsNavigation(
     NavHost(navController, startDestination = MainScreenTabRoute.CameraTab.name) {
         composable(route = MainScreenTabRoute.CameraTab.name) {
             val viewModel = getViewModel<CameraTabViewModel>()
+            viewModel.initArElements(arFragment = arFragment, fragmentManager = supportFragmentManager)
             CameraTabScreen(
                 uiState = viewModel.uiState,
                 setImageCallback = viewModel::changeCurrentPicture,
                 saveImageCallback = viewModel::saveCurrentPicture,
                 captureImageCallback = viewModel::captureImage,
                 restartActivityCallback = restartActivityCallback,
-                supportFragmentManager = supportFragmentManager,
-                arFragment = arFragment,
                 toggleRecording = toggleRecording,
             )
         }

@@ -18,6 +18,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentManager
+import com.drdlx.cartooneye.R
+import com.drdlx.cartooneye.R.*
 import com.drdlx.cartooneye.mainScreens.mainScreen.model.VoidCallback
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CaptureButtonWorkMode
 import com.drdlx.cartooneye.utils.*
@@ -46,17 +48,17 @@ fun CameraCapture(
     val context = LocalContext.current
     Permission(
         Manifest.permission.CAMERA,
-        rationale = stringResource(id = com.drdlx.cartooneye.R.string.camera_permission_ask_message),
+        rationale = stringResource(id = string.camera_permission_ask_message),
         permissionsNotAvailableContent = {
             Column(Modifier) {
-                Text(stringResource(id = com.drdlx.cartooneye.R.string.no_camera_message))
+                Text(stringResource(id = string.no_camera_message))
                 Spacer(modifier = Modifier.height(8.dp))
                 Button(onClick = {
                     context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                         data = Uri.fromParts("package", context.packageName, null)
                     })
                 }) {
-                    Text(stringResource(id = com.drdlx.cartooneye.R.string.open_settings))
+                    Text(stringResource(id = string.open_settings))
                 }
             }
         }
@@ -82,8 +84,20 @@ fun CameraCapture(
                 }
             )
 
-            Button(modifier = Modifier.align(Alignment.BottomEnd), onClick = { /*TODO*/ }) {
-                Text("Test")
+            Button(modifier = Modifier.align(Alignment.BottomEnd), onClick = {
+                when (captureButtonWorkMode) {
+                    CaptureButtonWorkMode.PHOTO -> captureImageCallback(arFragment.arSceneView)
+                    CaptureButtonWorkMode.VIDEO -> toggleRecording(arFragment.arSceneView)
+                }
+            }
+            ) {
+                Text(
+                    stringResource(id = when (captureButtonWorkMode) {
+                        CaptureButtonWorkMode.PHOTO -> string.switch_to_video
+                        CaptureButtonWorkMode.VIDEO -> string.switch_to_photo
+                    })
+                )
+
             }
         }
     }

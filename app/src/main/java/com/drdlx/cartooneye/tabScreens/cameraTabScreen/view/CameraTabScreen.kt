@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
@@ -41,13 +42,13 @@ fun CameraTabScreen(
     setImageCallback: (Uri) -> Unit,
     saveImageCallback: (Uri, Context) -> Unit,
     captureImageCallback: (ArSceneView) -> Unit,
-    supportFragmentManager: FragmentManager?,
-    arFragment: ArFrontFacingFragment?,
     restartActivityCallback: VoidCallback,
     toggleRecording: (ArSceneView?) -> Unit,
 ) {
     val imageUri = uiState.currentPictureUri.observeAsState()
     val captureButtonWorkMode = uiState.captureButtonWorkMode.observeAsState(CaptureButtonWorkMode.PHOTO)
+    val supportFragmentManager = uiState.supportFragmentManager.observeAsState(null)
+    val arFragment = uiState.arFragment.observeAsState(null)
     if (imageUri.value != EMPTY_IMAGE_URI) {
 
         Box(modifier = Modifier) {
@@ -59,7 +60,6 @@ fun CameraTabScreen(
             Row(modifier = Modifier.align(Alignment.BottomCenter)) {
                 Button(onClick = {
                     setImageCallback(EMPTY_IMAGE_URI)
-//                    restartActivityCallback()
                 }) {
                     Text(stringResource(id = R.string.remove_image))
                 }
@@ -70,7 +70,6 @@ fun CameraTabScreen(
                             saveImageCallback(it, localContext)
                         }
                         setImageCallback(EMPTY_IMAGE_URI)
-//                        restartActivityCallback()
                         Toast
                             .makeText(localContext, "Photo has been saved!", Toast.LENGTH_LONG)
                             .show()
@@ -81,8 +80,8 @@ fun CameraTabScreen(
             }
         }
     } else {
-        arFragment?.let {
-            supportFragmentManager?.let { fragmentManager ->
+        arFragment.value?.let {
+            supportFragmentManager.value?.let { fragmentManager ->
                 CameraCapture(
                     modifier = Modifier,
                     captureImageCallback = captureImageCallback,
@@ -103,6 +102,8 @@ fun CameraTabScreenPreview() {
     val uiState = CameraTabUiState(
         currentPictureUri = MutableLiveData(EMPTY_IMAGE_URI),
         captureButtonWorkMode = MutableLiveData(CaptureButtonWorkMode.PHOTO),
+        supportFragmentManager = MutableLiveData(null),
+        arFragment = MutableLiveData(null),
     )
     MaterialTheme {
         CameraTabScreen(
@@ -111,8 +112,6 @@ fun CameraTabScreenPreview() {
             saveImageCallback = { _: Uri, _: Context -> },
             captureImageCallback = { },
             restartActivityCallback = {},
-            supportFragmentManager = null,
-            arFragment = null,
             toggleRecording = {},
         )
     }

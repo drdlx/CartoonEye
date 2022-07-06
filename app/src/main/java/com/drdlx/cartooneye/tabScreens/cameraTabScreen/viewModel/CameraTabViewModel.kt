@@ -1,15 +1,10 @@
 package com.drdlx.cartooneye.tabScreens.cameraTabScreen.viewModel
 
-import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
-import android.graphics.drawable.BitmapDrawable
-import android.media.CamcorderProfile
-import android.media.Image
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
 import android.provider.MediaStore
@@ -22,15 +17,12 @@ import com.drdlx.cartooneye.utils.EMPTY_IMAGE_URI
 import com.google.ar.sceneform.ArSceneView
 import org.koin.android.annotation.KoinViewModel
 import android.util.Log
-import android.widget.Toast
-import androidx.annotation.IntegerRes
 import androidx.core.net.toUri
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.viewModelScope
-import com.drdlx.cartooneye.startScreen.MainActivity
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CaptureButtonWorkMode
-import com.drdlx.cartooneye.utils.VideoRecorder
 import com.drdlx.cartooneye.utils.makeTemporaryPicture
-import com.google.ar.sceneform.ux.ArFragment
+import com.google.ar.sceneform.ux.ArFrontFacingFragment
 import kotlinx.coroutines.launch
 
 @KoinViewModel
@@ -44,14 +36,31 @@ class CameraTabViewModel(
 
     private val currentPictureUri = MutableLiveData(EMPTY_IMAGE_URI)
     private val captureButtonWorkMode = MutableLiveData(CaptureButtonWorkMode.PHOTO)
+    private val supportFragmentManager = MutableLiveData<FragmentManager>(null)
+    private val arFragment = MutableLiveData<ArFrontFacingFragment>(null)
 
     val uiState = CameraTabUiState(
         currentPictureUri = currentPictureUri,
-        captureButtonWorkMode = captureButtonWorkMode
+        captureButtonWorkMode = captureButtonWorkMode,
+        arFragment = arFragment,
+        supportFragmentManager = supportFragmentManager,
     )
 
     fun changeCurrentPicture(uri: Uri) {
         currentPictureUri.value = uri
+    }
+
+    private fun changeArFragmentManager(fragmentManager: FragmentManager) {
+        supportFragmentManager.postValue(fragmentManager)
+    }
+
+    private fun changeArFragment(fragment: ArFrontFacingFragment) {
+        arFragment.postValue(fragment)
+    }
+
+    fun initArElements(fragmentManager: FragmentManager, arFragment: ArFrontFacingFragment) {
+        changeArFragmentManager(fragmentManager)
+        changeArFragment(arFragment)
     }
 
     fun changeCameraMode(mode: CaptureButtonWorkMode) {
