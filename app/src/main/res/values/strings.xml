@@ -12,5 +12,6 @@
     <string name="save_image">Save image</string>
     <string name="switch_to_video">Switch to video</string>
     <string name="switch_to_photo">Switch to photo</string>
+    <string name="start_ar_session">Start AR Session</string>
 
 </resources>

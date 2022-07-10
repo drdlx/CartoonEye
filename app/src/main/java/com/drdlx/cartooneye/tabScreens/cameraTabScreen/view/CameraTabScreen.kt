@@ -2,7 +2,6 @@ package com.drdlx.cartooneye.tabScreens.cameraTabScreen.view
 
 import android.content.Context
 import android.net.Uri
-import android.view.View
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -18,9 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.net.toUri
-import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.LiveData
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.MutableLiveData
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
@@ -31,8 +29,6 @@ import com.drdlx.cartooneye.mainScreens.mainScreen.model.VoidCallback
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CameraTabUiState
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CaptureButtonWorkMode
 import com.google.ar.sceneform.ArSceneView
-import com.google.ar.sceneform.SceneView
-import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.ArFrontFacingFragment
 
 @OptIn(ExperimentalCoilApi::class)
@@ -42,16 +38,18 @@ fun CameraTabScreen(
     setImageCallback: (Uri) -> Unit,
     saveImageCallback: (Uri, Context) -> Unit,
     captureImageCallback: (ArSceneView) -> Unit,
-    restartActivityCallback: VoidCallback,
+    initDataCallback: VoidCallback,
     toggleRecording: (ArSceneView?) -> Unit,
     toggleCameraMode: VoidCallback,
+    getCommitFunction: (
+        fragment: Fragment,
+        tag: String
+    ) -> (FragmentTransaction.(containerId: Int) -> Unit)
 ) {
     val imageUri = uiState.currentPictureUri.observeAsState()
-    val captureButtonWorkMode = uiState.captureButtonWorkMode.observeAsState(CaptureButtonWorkMode.PHOTO)
-    val supportFragmentManager = uiState.supportFragmentManager.observeAsState(null)
-    val arFragment = uiState.arFragment.observeAsState(null)
+    val captureButtonWorkMode =
+        uiState.captureButtonWorkMode.observeAsState(CaptureButtonWorkMode.PHOTO)
     if (imageUri.value != EMPTY_IMAGE_URI) {
-
         Box(modifier = Modifier) {
             Image(
                 modifier = Modifier.fillMaxSize(),
@@ -81,22 +79,18 @@ fun CameraTabScreen(
             }
         }
     } else {
-        arFragment.value?.let {
-            supportFragmentManager.value?.let { fragmentManager ->
-                CameraCapture(
-                    modifier = Modifier,
-                    captureImageCallback = captureImageCallback,
-                    arFragment = it,
-                    supportFragmentManager = fragmentManager,
-                    toggleRecording = toggleRecording,
-                    captureButtonWorkMode = captureButtonWorkMode.value,
-                    toggleCameraMode = toggleCameraMode,
-                )
-            }
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CameraCapture(
+                modifier = Modifier,
+                captureImageCallback = captureImageCallback,
+                toggleRecording = toggleRecording,
+                captureButtonWorkMode = captureButtonWorkMode.value,
+                toggleCameraMode = toggleCameraMode,
+                getCommitFunction = getCommitFunction
+            )
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
@@ -113,9 +107,10 @@ fun CameraTabScreenPreview() {
             setImageCallback = {},
             saveImageCallback = { _: Uri, _: Context -> },
             captureImageCallback = { },
-            restartActivityCallback = {},
             toggleRecording = {},
             toggleCameraMode = {},
+            initDataCallback = {},
+            getCommitFunction = { _, _ -> {} }
         )
     }
 }

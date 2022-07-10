@@ -2,7 +2,9 @@ package com.drdlx.cartooneye.mainScreens.mainScreen.navigation
 
 import android.view.View
 import androidx.compose.runtime.Composable
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,23 +22,24 @@ import org.koin.androidx.compose.getViewModel
 @Composable
 fun TabsNavigation(
     navController: NavHostController,
-    restartActivityCallback: VoidCallback,
-    arFragment: ArFrontFacingFragment,
-    supportFragmentManager: FragmentManager,
     toggleRecording: (ArSceneView?) -> Unit,
+    getCommitFunction: (
+        fragment: Fragment,
+        tag: String
+    ) -> (FragmentTransaction.(containerId: Int) -> Unit)
 ) {
     NavHost(navController, startDestination = MainScreenTabRoute.CameraTab.name) {
         composable(route = MainScreenTabRoute.CameraTab.name) {
             val viewModel = getViewModel<CameraTabViewModel>()
-            viewModel.initArElements(arFragment = arFragment, fragmentManager = supportFragmentManager)
             CameraTabScreen(
                 uiState = viewModel.uiState,
                 setImageCallback = viewModel::changeCurrentPicture,
                 saveImageCallback = viewModel::saveCurrentPicture,
                 captureImageCallback = viewModel::captureImage,
-                restartActivityCallback = restartActivityCallback,
+                initDataCallback = viewModel::toggleTest,
                 toggleRecording = toggleRecording,
                 toggleCameraMode = viewModel::toggleCameraMode,
+                getCommitFunction = getCommitFunction,
             )
         }
         composable(route = MainScreenTabRoute.GalleryTab.name) {

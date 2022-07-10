@@ -17,7 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
 import com.drdlx.cartooneye.R
 import com.drdlx.cartooneye.R.*
 import com.drdlx.cartooneye.mainScreens.mainScreen.model.VoidCallback
@@ -40,13 +42,18 @@ private const val TAG = "CameraCapture"
 fun CameraCapture(
     modifier: Modifier = Modifier,
     captureImageCallback: (ArSceneView) -> Unit,
-    arFragment: ArFrontFacingFragment,
-    supportFragmentManager: FragmentManager,
     toggleRecording: (ArSceneView?) -> Unit,
     captureButtonWorkMode: CaptureButtonWorkMode,
     toggleCameraMode: VoidCallback,
+    getCommitFunction: (
+        fragment: Fragment,
+        tag: String
+    ) -> (FragmentTransaction.(containerId: Int) -> Unit)
 ) {
     val context = LocalContext.current
+    val testChange = remember {
+        mutableStateOf(false)
+    }
     Permission(
         Manifest.permission.CAMERA,
         rationale = stringResource(id = string.camera_permission_ask_message),
@@ -64,35 +71,53 @@ fun CameraCapture(
             }
         }
     ) {
+        println("testChange: $testChange")
 
-        Box(modifier = modifier) {
-            CameraPreview(
-                modifier = Modifier.fillMaxSize(),
-                supportFragmentManager = supportFragmentManager,
-                arFragment = arFragment,
-            )
+        if (testChange.value) {
 
-            CapturePictureButton(
-                modifier = Modifier
-                    .size(100.dp)
-                    .padding(16.dp)
-                    .align(Alignment.BottomCenter),
-                onClick = {
-                    when(captureButtonWorkMode) {
-                        CaptureButtonWorkMode.PHOTO -> captureImageCallback(arFragment.arSceneView)
-                        CaptureButtonWorkMode.VIDEO -> toggleRecording(arFragment.arSceneView)
+            Box(modifier = modifier) {
+                if (captureButtonWorkMode != CaptureButtonWorkMode.INITIAL) {
+                    CameraPreview(
+                        modifier = Modifier.fillMaxSize(),
+                        getCommitFunction = getCommitFunction,
+                    )
+
+
+                CapturePictureButton(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .padding(16.dp)
+                        .align(Alignment.BottomCenter),
+                    onClick = {
+                        when (captureButtonWorkMode) {
+                            CaptureButtonWorkMode.PHOTO -> {}//captureImageCallback(arFragment.arSceneView)
+                            CaptureButtonWorkMode.VIDEO -> {}//toggleRecording(arFragment.arSceneView)
+                            else -> {}
+                        }
                     }
-                }
-            )
-
-            Button(modifier = Modifier.align(Alignment.BottomEnd), onClick = toggleCameraMode) {
-                Text(
-                    stringResource(id = when (captureButtonWorkMode) {
-                        CaptureButtonWorkMode.PHOTO -> string.switch_to_video
-                        CaptureButtonWorkMode.VIDEO -> string.switch_to_photo
-                    })
                 )
+                }
 
+                Button(modifier = Modifier.align(Alignment.BottomEnd), onClick = toggleCameraMode) {
+                    Text(
+                        stringResource(
+                            id = when (captureButtonWorkMode) {
+                                CaptureButtonWorkMode.PHOTO -> string.switch_to_video
+                                CaptureButtonWorkMode.VIDEO -> string.switch_to_photo
+                                else -> string.start_ar_session
+                            }
+                        )
+                    )
+
+                }
+            }
+        } else {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Button(onClick = {
+                    testChange.value = true
+                }) {
+                    Text("Test")
+                }
             }
         }
     }
