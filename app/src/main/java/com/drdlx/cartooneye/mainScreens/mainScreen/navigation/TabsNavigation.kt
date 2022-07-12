@@ -34,8 +34,9 @@ fun TabsNavigation(
                 setImageCallback = viewModel::changeCurrentPicture,
                 saveImageCallback = viewModel::saveCurrentPicture,
                 captureImageCallback = viewModel::captureImage,
-                restartActivityCallback = restartActivityCallback,
                 toggleRecording = toggleRecording,
+                toggleCameraMode = viewModel::toggleCameraMode,
+                restartCameraMode = viewModel::restartCameraMode,
             )
         }
         composable(route = MainScreenTabRoute.GalleryTab.name) {

@@ -35,7 +35,7 @@ class CameraTabViewModel(
     }
 
     private val currentPictureUri = MutableLiveData(EMPTY_IMAGE_URI)
-    private val captureButtonWorkMode = MutableLiveData(CaptureButtonWorkMode.PHOTO)
+    private val captureButtonWorkMode = MutableLiveData(CaptureButtonWorkMode.INITIAL)
     private val supportFragmentManager = MutableLiveData<FragmentManager>(null)
     private val arFragment = MutableLiveData<ArFrontFacingFragment>(null)
 
@@ -49,6 +49,20 @@ class CameraTabViewModel(
     fun changeCurrentPicture(uri: Uri) {
         currentPictureUri.value = uri
     }
+
+    fun toggleCameraMode() = when (captureButtonWorkMode.value) {
+        CaptureButtonWorkMode.PHOTO -> {
+            captureButtonWorkMode.value = CaptureButtonWorkMode.VIDEO
+        }
+        CaptureButtonWorkMode.VIDEO -> {
+            captureButtonWorkMode.value = CaptureButtonWorkMode.PHOTO
+        }
+        else -> {
+            captureButtonWorkMode.value = CaptureButtonWorkMode.PHOTO
+        }
+    }
+
+    fun restartCameraMode() { captureButtonWorkMode.value = CaptureButtonWorkMode.INITIAL }
 
     private fun changeArFragmentManager(fragmentManager: FragmentManager) {
         supportFragmentManager.postValue(fragmentManager)

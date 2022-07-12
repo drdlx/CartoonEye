@@ -42,13 +42,17 @@ fun CameraTabScreen(
     setImageCallback: (Uri) -> Unit,
     saveImageCallback: (Uri, Context) -> Unit,
     captureImageCallback: (ArSceneView) -> Unit,
-    restartActivityCallback: VoidCallback,
     toggleRecording: (ArSceneView?) -> Unit,
+    toggleCameraMode: VoidCallback,
+    restartCameraMode: VoidCallback,
 ) {
     val imageUri = uiState.currentPictureUri.observeAsState()
-    val captureButtonWorkMode = uiState.captureButtonWorkMode.observeAsState(CaptureButtonWorkMode.PHOTO)
+    val captureButtonWorkMode = uiState.captureButtonWorkMode.observeAsState(CaptureButtonWorkMode.INITIAL)
     val supportFragmentManager = uiState.supportFragmentManager.observeAsState(null)
     val arFragment = uiState.arFragment.observeAsState(null)
+    LaunchedEffect("CameraTabScreen",) {
+        restartCameraMode()
+    }
     if (imageUri.value != EMPTY_IMAGE_URI) {
 
         Box(modifier = Modifier) {
@@ -60,6 +64,7 @@ fun CameraTabScreen(
             Row(modifier = Modifier.align(Alignment.BottomCenter)) {
                 Button(onClick = {
                     setImageCallback(EMPTY_IMAGE_URI)
+                    restartCameraMode()
                 }) {
                     Text(stringResource(id = R.string.remove_image))
                 }
@@ -73,6 +78,7 @@ fun CameraTabScreen(
                         Toast
                             .makeText(localContext, "Photo has been saved!", Toast.LENGTH_LONG)
                             .show()
+                        restartCameraMode()
                     }
                 ) {
                     Text(stringResource(id = R.string.save_image))
@@ -89,6 +95,7 @@ fun CameraTabScreen(
                     supportFragmentManager = fragmentManager,
                     toggleRecording = toggleRecording,
                     captureButtonWorkMode = captureButtonWorkMode.value,
+                    toggleCameraMode = toggleCameraMode,
                 )
             }
         }
@@ -111,8 +118,9 @@ fun CameraTabScreenPreview() {
             setImageCallback = {},
             saveImageCallback = { _: Uri, _: Context -> },
             captureImageCallback = { },
-            restartActivityCallback = {},
             toggleRecording = {},
+            toggleCameraMode = {},
+            restartCameraMode = {},
         )
     }
 }

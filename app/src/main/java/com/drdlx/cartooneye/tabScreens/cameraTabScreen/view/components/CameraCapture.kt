@@ -8,6 +8,7 @@ import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.provider.Settings
 import android.view.View
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Text
@@ -42,6 +43,7 @@ fun CameraCapture(
     captureImageCallback: (ArSceneView) -> Unit,
     arFragment: ArFrontFacingFragment,
     supportFragmentManager: FragmentManager,
+    toggleCameraMode: VoidCallback,
     toggleRecording: (ArSceneView?) -> Unit,
     captureButtonWorkMode: CaptureButtonWorkMode,
 ) {
@@ -80,21 +82,20 @@ fun CameraCapture(
                     when(captureButtonWorkMode) {
                         CaptureButtonWorkMode.PHOTO -> captureImageCallback(arFragment.arSceneView)
                         CaptureButtonWorkMode.VIDEO -> toggleRecording(arFragment.arSceneView)
+                        else -> Toast.makeText(context, "Please start AR Session first", Toast.LENGTH_LONG).show()
                     }
                 }
             )
 
             Button(modifier = Modifier.align(Alignment.BottomEnd), onClick = {
-                when (captureButtonWorkMode) {
-                    CaptureButtonWorkMode.PHOTO -> captureImageCallback(arFragment.arSceneView)
-                    CaptureButtonWorkMode.VIDEO -> toggleRecording(arFragment.arSceneView)
-                }
+                toggleCameraMode()
             }
             ) {
                 Text(
                     stringResource(id = when (captureButtonWorkMode) {
                         CaptureButtonWorkMode.PHOTO -> string.switch_to_video
                         CaptureButtonWorkMode.VIDEO -> string.switch_to_photo
+                        else -> string.start_ar_session
                     })
                 )
 
