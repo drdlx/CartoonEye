@@ -1,7 +1,8 @@
 package com.drdlx.cartooneye.mainScreens.mainScreen.navigation
 
-import android.opengl.GLSurfaceView
+import android.view.View
 import androidx.compose.runtime.Composable
+import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -11,24 +12,31 @@ import com.drdlx.cartooneye.tabScreens.cameraTabScreen.view.CameraTabScreen
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.viewModel.CameraTabViewModel
 import com.drdlx.cartooneye.tabScreens.galleryTabScreen.view.GalleryTabScreen
 import com.drdlx.cartooneye.tabScreens.galleryTabScreen.viewModel.GalleryTabViewModel
-import com.google.ar.core.Session
+import com.google.ar.sceneform.ArSceneView
+import com.google.ar.sceneform.SceneView
+import com.google.ar.sceneform.ux.ArFrontFacingFragment
 import org.koin.androidx.compose.getViewModel
 
 @Composable
 fun TabsNavigation(
     navController: NavHostController,
-    surfaceView: GLSurfaceView?,
     restartActivityCallback: VoidCallback,
+    arFragment: ArFrontFacingFragment,
+    supportFragmentManager: FragmentManager,
+    toggleRecording: (ArSceneView?) -> Unit,
 ) {
     NavHost(navController, startDestination = MainScreenTabRoute.CameraTab.name) {
         composable(route = MainScreenTabRoute.CameraTab.name) {
             val viewModel = getViewModel<CameraTabViewModel>()
+            viewModel.initArElements(arFragment = arFragment, fragmentManager = supportFragmentManager)
             CameraTabScreen(
                 uiState = viewModel.uiState,
                 setImageCallback = viewModel::changeCurrentPicture,
                 saveImageCallback = viewModel::saveCurrentPicture,
-                surfaceView = surfaceView,
-                restartActivityCallback = restartActivityCallback,
+                captureImageCallback = viewModel::captureImage,
+                toggleRecording = toggleRecording,
+                toggleCameraMode = viewModel::toggleCameraMode,
+                restartCameraMode = viewModel::restartCameraMode,
             )
         }
         composable(route = MainScreenTabRoute.GalleryTab.name) {

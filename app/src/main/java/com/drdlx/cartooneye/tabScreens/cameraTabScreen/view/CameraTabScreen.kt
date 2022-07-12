@@ -2,7 +2,7 @@ package com.drdlx.cartooneye.tabScreens.cameraTabScreen.view
 
 import android.content.Context
 import android.net.Uri
-import android.opengl.GLSurfaceView
+import android.view.View
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -19,6 +19,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
+import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
@@ -27,7 +29,11 @@ import com.drdlx.cartooneye.utils.EMPTY_IMAGE_URI
 import com.drdlx.cartooneye.R
 import com.drdlx.cartooneye.mainScreens.mainScreen.model.VoidCallback
 import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CameraTabUiState
-import com.google.ar.core.Session
+import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CaptureButtonWorkMode
+import com.google.ar.sceneform.ArSceneView
+import com.google.ar.sceneform.SceneView
+import com.google.ar.sceneform.ux.ArFragment
+import com.google.ar.sceneform.ux.ArFrontFacingFragment
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
@@ -35,10 +41,18 @@ fun CameraTabScreen(
     uiState: CameraTabUiState,
     setImageCallback: (Uri) -> Unit,
     saveImageCallback: (Uri, Context) -> Unit,
-    surfaceView: GLSurfaceView?,
-    restartActivityCallback: VoidCallback,
+    captureImageCallback: (ArSceneView) -> Unit,
+    toggleRecording: (ArSceneView?) -> Unit,
+    toggleCameraMode: VoidCallback,
+    restartCameraMode: VoidCallback,
 ) {
     val imageUri = uiState.currentPictureUri.observeAsState()
+    val captureButtonWorkMode = uiState.captureButtonWorkMode.observeAsState(CaptureButtonWorkMode.INITIAL)
+    val supportFragmentManager = uiState.supportFragmentManager.observeAsState(null)
+    val arFragment = uiState.arFragment.observeAsState(null)
+    LaunchedEffect("CameraTabScreen",) {
+        restartCameraMode()
+    }
     if (imageUri.value != EMPTY_IMAGE_URI) {
 
         Box(modifier = Modifier) {
@@ -50,7 +64,7 @@ fun CameraTabScreen(
             Row(modifier = Modifier.align(Alignment.BottomCenter)) {
                 Button(onClick = {
                     setImageCallback(EMPTY_IMAGE_URI)
-                    restartActivityCallback()
+                    restartCameraMode()
                 }) {
                     Text(stringResource(id = R.string.remove_image))
                 }
@@ -61,10 +75,10 @@ fun CameraTabScreen(
                             saveImageCallback(it, localContext)
                         }
                         setImageCallback(EMPTY_IMAGE_URI)
-                        restartActivityCallback()
                         Toast
                             .makeText(localContext, "Photo has been saved!", Toast.LENGTH_LONG)
                             .show()
+                        restartCameraMode()
                     }
                 ) {
                     Text(stringResource(id = R.string.save_image))
@@ -72,14 +86,19 @@ fun CameraTabScreen(
             }
         }
     } else {
-        CameraCapture(
-            modifier = Modifier,
-            onImageFile = { file ->
-                println(file)
-                setImageCallback(file.toUri())
-            },
-            surfaceView = surfaceView,
-        )
+        arFragment.value?.let {
+            supportFragmentManager.value?.let { fragmentManager ->
+                CameraCapture(
+                    modifier = Modifier,
+                    captureImageCallback = captureImageCallback,
+                    arFragment = it,
+                    supportFragmentManager = fragmentManager,
+                    toggleRecording = toggleRecording,
+                    captureButtonWorkMode = captureButtonWorkMode.value,
+                    toggleCameraMode = toggleCameraMode,
+                )
+            }
+        }
     }
 }
 
@@ -88,15 +107,20 @@ fun CameraTabScreen(
 @Composable
 fun CameraTabScreenPreview() {
     val uiState = CameraTabUiState(
-        currentPictureUri = MutableLiveData(EMPTY_IMAGE_URI)
+        currentPictureUri = MutableLiveData(EMPTY_IMAGE_URI),
+        captureButtonWorkMode = MutableLiveData(CaptureButtonWorkMode.PHOTO),
+        supportFragmentManager = MutableLiveData(null),
+        arFragment = MutableLiveData(null),
     )
     MaterialTheme {
         CameraTabScreen(
             uiState = uiState,
             setImageCallback = {},
-            saveImageCallback = { _: Uri, _: Context -> } ,
-            surfaceView = null,
-            restartActivityCallback = {},
+            saveImageCallback = { _: Uri, _: Context -> },
+            captureImageCallback = { },
+            toggleRecording = {},
+            toggleCameraMode = {},
+            restartCameraMode = {},
         )
     }
 }

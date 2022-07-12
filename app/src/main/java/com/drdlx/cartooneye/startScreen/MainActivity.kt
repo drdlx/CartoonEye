@@ -1,96 +1,74 @@
 package com.drdlx.cartooneye.startScreen
 
-//import com.drdlx.cartooneye.common.helpers.SnackbarHelper
-
-import android.graphics.Bitmap
-import android.opengl.GLES20
-import android.opengl.GLSurfaceView
+import android.R
+import android.content.ContentValues
+import android.media.CamcorderProfile
+import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.LaunchedEffect
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.drdlx.cartooneye.common.helpers.CameraPermissionHelper
-import com.drdlx.cartooneye.common.helpers.DisplayRotationHelper
-import com.drdlx.cartooneye.common.helpers.FullScreenHelper
-import com.drdlx.cartooneye.common.helpers.TrackingStateHelper
-import com.drdlx.cartooneye.common.rendering.BackgroundRenderer
-import com.drdlx.cartooneye.common.rendering.ObjectRenderer
 import com.drdlx.cartooneye.mainScreens.mainScreen.view.MainScreen
 import com.drdlx.cartooneye.navigation.AppNavigation
 import com.drdlx.cartooneye.navigation.routeObjects.AppScreens
 import com.drdlx.cartooneye.navigation.routeObjects.popRouteName
-import com.drdlx.cartooneye.utils.ArActivityStorage
-import com.drdlx.cartooneye.utils.AugmentedFaceRenderer
+import com.drdlx.cartooneye.utils.VideoRecorder
 import com.google.ar.core.*
-import com.google.ar.core.Config.AugmentedFaceMode
-import com.google.ar.core.exceptions.*
+import com.google.ar.sceneform.ArSceneView
+import com.google.ar.sceneform.rendering.ModelRenderable
+import com.google.ar.sceneform.rendering.Renderable
+import com.google.ar.sceneform.rendering.Texture
+import com.google.ar.sceneform.ux.ArFrontFacingFragment
+import com.google.ar.sceneform.ux.AugmentedFaceNode
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import org.koin.android.ext.android.inject
-import java.io.IOException
 import java.util.*
-import javax.microedition.khronos.egl.EGLConfig
-import javax.microedition.khronos.opengles.GL10
+import java.util.concurrent.CompletableFuture
 
 
-class MainActivity : ComponentActivity(), GLSurfaceView.Renderer {
+class MainActivity : FragmentActivity() {
 
     companion object {
         private const val launchEffectName = "Navigator"
         private const val TAG = "MainActivity"
     }
 
-    // Rendering. The Renderers are created here, and initialized when the GL surface is created.
-    private var surfaceView: GLSurfaceView? = null
+    private val loaders: MutableSet<CompletableFuture<*>> = HashSet()
 
-    private var installRequested = false
+    private var arSceneView: ArSceneView? = null
+    private var faceTexture: Texture? = null
+    private var faceModel: ModelRenderable? = null
+    private val facesNodes: HashMap<AugmentedFace, AugmentedFaceNode> = HashMap()
+    private var arFragment: ArFrontFacingFragment? = null
 
-    private var session: Session? = null
-    private var displayRotationHelper: DisplayRotationHelper? = null
-    private val trackingStateHelper: TrackingStateHelper = TrackingStateHelper(this)
-
-    private val backgroundRenderer: BackgroundRenderer = BackgroundRenderer()
-    private val augmentedFaceRenderer: AugmentedFaceRenderer = AugmentedFaceRenderer()
-    private val noseObject: ObjectRenderer = ObjectRenderer()
-    private val rightEarObject: ObjectRenderer = ObjectRenderer()
-    private val leftEarObject: ObjectRenderer = ObjectRenderer()
-
-    // Temporary matrix allocated here to reduce number of allocations for each frame.
-    private val noseMatrix = FloatArray(16)
-    private val rightEarMatrix = FloatArray(16)
-    private val leftEarMatrix = FloatArray(16)
-    private val DEFAULT_COLOR = floatArrayOf(0f, 0f, 0f, 0f)
+    private val videoRecorder: VideoRecorder = VideoRecorder()
 
     private val navigator: AppNavigation by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        ArActivityStorage.setActivity(this)
-        displayRotationHelper = DisplayRotationHelper(this)
-
-        surfaceView = GLSurfaceView(this).also { surfaceView ->
-            surfaceView.preserveEGLContextOnPause = true
-            surfaceView.setEGLContextClientVersion(2)
-            surfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0) // Alpha used for plane blending.
-            surfaceView.setRenderer(this)
-            surfaceView.renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
-            surfaceView.setWillNotDraw(false)
-
-            surfaceView.layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-
+        val fragmentManager = this.supportFragmentManager.also {
+            it.addFragmentOnAttachListener(this::onAttachFragment)
+            loadModels()
+            loadTextures()
         }
+
+        this.arFragment = ArFrontFacingFragment().also {
+            it.setOnAugmentedFaceUpdateListener(this::onAugmentedFaceTrackingUpdate)
+        }
+
+        videoRecorder.setVideoQuality(CamcorderProfile.QUALITY_2160P, resources.configuration.orientation)
+        videoRecorder.setSceneView(arFragment?.arSceneView)
 
         setContent {
 
@@ -119,8 +97,10 @@ class MainActivity : ComponentActivity(), GLSurfaceView.Renderer {
             ) {
                 composable(route = AppScreens.CameraScreen.route) {
                     MainScreen(
-                        surfaceView = surfaceView,
-                        restartActivityCallback = { restartActivity() }
+                        restartActivityCallback = { restartActivity() },
+                        supportFragmentManager = fragmentManager,
+                        arFragment = arFragment,
+                        toggleRecording = { sceneView -> toggleRecording(sceneView) },
                     )
                 }
             }
@@ -128,260 +108,120 @@ class MainActivity : ComponentActivity(), GLSurfaceView.Renderer {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        if (session == null) {
-            var exception: Exception? = null
-            var message: String? = null
-            try {
-                when (ArCoreApk.getInstance().requestInstall(this, !installRequested)) {
-                    ArCoreApk.InstallStatus.INSTALL_REQUESTED -> {
-                        installRequested = true
-                        return
-                    }
-                    ArCoreApk.InstallStatus.INSTALLED -> {}
-                }
-
-                // ARCore requires camera permissions to operate. If we did not yet obtain runtime
-                // permission on Android M and above, now is a good time to ask the user for it.
-                if (!CameraPermissionHelper.hasCameraPermission(this)) {
-                    CameraPermissionHelper.requestCameraPermission(this)
-                    return
-                }
-
-                // Create the session and configure it to use a front-facing (selfie) camera.
-                session = Session(this, EnumSet.of(Session.Feature.FRONT_CAMERA))
-
-                val cameraConfigFilter = CameraConfigFilter(session)
-                cameraConfigFilter.facingDirection = CameraConfig.FacingDirection.FRONT
-                val cameraConfigs: List<CameraConfig> =
-                    session!!.getSupportedCameraConfigs(cameraConfigFilter)
-                if (!cameraConfigs.isEmpty()) {
-                    // Element 0 contains the camera config that best matches the session feature
-                    // and filter settings.
-                    session!!.cameraConfig = cameraConfigs[0]
-                } else {
-                    message = "This device does not have a front-facing (selfie) camera"
-                    exception = UnavailableDeviceNotCompatibleException(message)
-                }
-
-                configureSession()
-
-            } catch (e: UnavailableArcoreNotInstalledException) {
-                message = "Please install ARCore"
-                exception = e
-            } catch (e: UnavailableUserDeclinedInstallationException) {
-                message = "Please install ARCore"
-                exception = e
-            } catch (e: UnavailableApkTooOldException) {
-                message = "Please update ARCore"
-                exception = e
-            } catch (e: UnavailableSdkTooOldException) {
-                message = "Please update this app"
-                exception = e
-            } catch (e: UnavailableDeviceNotCompatibleException) {
-                message = "This device does not support AR"
-                exception = e
-            } catch (e: Exception) {
-                message = "Failed to create AR session"
-                exception = e
-            }
-            if (message != null) {
-                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-                Log.e(
-                    TAG,
-                    "Exception creating session",
-                    exception
-                )
-                return
-            }
-        }
-
-        // Note that order matters - see the note in onPause(), the reverse applies here.
-        try {
-            session!!.resume()
-        } catch (e: CameraNotAvailableException) {
-            Toast.makeText(this, "Camera not available. Try restarting the app.", Toast.LENGTH_LONG).show()
-//            messageSnackbarHelper.showError(this, "Camera not available. Try restarting the app.")
-            session = null
-            return
-        }
-
-        surfaceView!!.onResume()
-        displayRotationHelper!!.onResume()
+    private fun onAttachFragment(fragmentManager: FragmentManager?, fragment: Fragment) {
+        arFragment?.setOnViewCreatedListener(this::onViewCreated)
     }
 
     override fun onPause() {
-        super.onPause()
-
-        if (session != null) {
-            // Note that the order matters - GLSurfaceView is paused first so that it does not try
-            // to query the session. If Session is paused before GLSurfaceView, GLSurfaceView may
-            // still call session.update() and get a SessionPausedException.
-            displayRotationHelper!!.onPause()
-            surfaceView!!.onPause()
-            session!!.pause()
+        if (videoRecorder.isRecording) {
+            toggleRecording(null)
         }
+        super.onPause()
+    }
+
+    private fun onViewCreated(arSceneView: ArSceneView) {
+        this.arSceneView = arSceneView
+
+        // This is important to make sure that the camera stream renders first so that
+        // the face mesh occlusion works correctly.
+        arSceneView.setCameraStreamRenderPriority(Renderable.RENDER_PRIORITY_FIRST)
+
+        // Check for face detections
+        arFragment?.setOnAugmentedFaceUpdateListener(::onAugmentedFaceTrackingUpdate)
     }
 
     override fun onDestroy() {
-        if (session != null) {
-            // Explicitly close ARCore Session to release native resources.
-            // Review the API reference for important considerations before calling close() in apps with
-            // more complicated lifecycle requirements:
-            // https://developers.google.com/ar/reference/java/arcore/reference/com/google/ar/core/Session#close()
-            session!!.close()
-            session = null
-        }
+
         super.onDestroy()
-    }
-
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        FullScreenHelper.setFullScreenOnWindowFocusChanged(this, hasFocus)
-    }
-
-    override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
-
-        // Prepare the rendering objects. This involves reading shaders, so may throw an IOException.
-        try {
-            // Create the texture and pass it to ARCore session to be filled during update().
-            backgroundRenderer.createOnGlThread( /*context=*/this)
-            augmentedFaceRenderer.createOnGlThread(this, "models/freckles.png")
-            augmentedFaceRenderer.setMaterialProperties(0.0f, 1.0f, 0.1f, 6.0f)
-            noseObject.createOnGlThread( /*context=*/this, "models/nose.obj", "models/nose_fur.png")
-            noseObject.setMaterialProperties(0.0f, 1.0f, 0.1f, 6.0f)
-            noseObject.setBlendMode(ObjectRenderer.BlendMode.AlphaBlending)
-            rightEarObject.createOnGlThread(this, "models/forehead_right.obj", "models/ear_fur.png")
-            rightEarObject.setMaterialProperties(0.0f, 1.0f, 0.1f, 6.0f)
-            rightEarObject.setBlendMode(ObjectRenderer.BlendMode.AlphaBlending)
-            leftEarObject.createOnGlThread(this, "models/forehead_left.obj", "models/ear_fur.png")
-            leftEarObject.setMaterialProperties(0.0f, 1.0f, 0.1f, 6.0f)
-            leftEarObject.setBlendMode(ObjectRenderer.BlendMode.AlphaBlending)
-        } catch (e: IOException) {
-            Log.e(TAG, "Failed to read an asset file", e)
-        }
-    }
-
-    override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
-        displayRotationHelper!!.onSurfaceChanged(width, height)
-        GLES20.glViewport(0, 0, width, height)
-        ArActivityStorage.setDimensions(width, height)
-        /*mWidth = width
-        mHeight = height*/
-    }
-
-    override fun onDrawFrame(gl: GL10?) {
-        // Clear screen to notify driver it should not load any pixels from previous frame.
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
-        if (session == null) {
-            return
-        }
-        // Notify ARCore session that the view size changed so that the perspective matrix and
-        // the video background can be properly adjusted.
-        displayRotationHelper!!.updateSessionIfNeeded(session!!)
-        try {
-            session!!.setCameraTextureName(backgroundRenderer.textureId)
-
-            // Obtain the current frame from ARSession. When the configuration is set to
-            // UpdateMode.BLOCKING (it is by default), this will throttle the rendering to the
-            // camera framerate.
-            val frame = session!!.update()
-            val camera = frame.camera
-
-            // Get projection matrix.
-            val projectionMatrix = FloatArray(16)
-            camera.getProjectionMatrix(projectionMatrix, 0, 0.1f, 100.0f)
-
-            // Get camera matrix and draw.
-            val viewMatrix = FloatArray(16)
-            camera.getViewMatrix(viewMatrix, 0)
-
-            // Compute lighting from average intensity of the image.
-            // The first three components are color scaling factors.
-            // The last one is the average pixel intensity in gamma space.
-            val colorCorrectionRgba = FloatArray(4)
-            frame.lightEstimate.getColorCorrection(colorCorrectionRgba, 0)
-
-            // If frame is ready, render camera preview image to the GL surface.
-            backgroundRenderer.draw(frame)
-
-            // Keep the screen unlocked while tracking, but allow it to lock when tracking stops.
-            trackingStateHelper.updateKeepScreenOnFlag(camera.trackingState)
-
-            // ARCore's face detection works best on upright faces, relative to gravity.
-            // If the device cannot determine a screen side aligned with gravity, face
-            // detection may not work optimally.
-            val faces = session!!.getAllTrackables(
-                AugmentedFace::class.java
-            )
-            for (face in faces) {
-                if (face.trackingState != TrackingState.TRACKING) {
-                    break
-                }
-                val scaleFactor = 1.0f
-                // Face objects use transparency so they must be rendered back to front without depth write.
-                GLES20.glDepthMask(false)
-
-                // Each face's region poses, mesh vertices, and mesh normals are updated every frame.
-
-                // 1. Render the face mesh first, behind any 3D objects attached to the face regions.
-                val modelMatrix = FloatArray(16)
-                face.centerPose.toMatrix(modelMatrix, 0)
-                augmentedFaceRenderer.draw(
-                    projectionMatrix, viewMatrix, modelMatrix, colorCorrectionRgba, face
-                )
-
-                // 2. Next, render the 3D objects attached to the forehead.
-                face.getRegionPose(AugmentedFace.RegionType.FOREHEAD_RIGHT)
-                    .toMatrix(rightEarMatrix, 0)
-                rightEarObject.updateModelMatrix(rightEarMatrix, scaleFactor)
-                rightEarObject.draw(
-                    viewMatrix,
-                    projectionMatrix,
-                    colorCorrectionRgba,
-                    DEFAULT_COLOR
-                )
-                face.getRegionPose(AugmentedFace.RegionType.FOREHEAD_LEFT)
-                    .toMatrix(leftEarMatrix, 0)
-                leftEarObject.updateModelMatrix(leftEarMatrix, scaleFactor)
-                leftEarObject.draw(
-                    viewMatrix,
-                    projectionMatrix,
-                    colorCorrectionRgba,
-                    DEFAULT_COLOR
-                )
-
-                // 3. Render the nose last so that it is not occluded by face mesh or by 3D objects attached
-                // to the forehead regions.
-                face.getRegionPose(AugmentedFace.RegionType.NOSE_TIP).toMatrix(noseMatrix, 0)
-                noseObject.updateModelMatrix(noseMatrix, scaleFactor)
-                noseObject.draw(
-                    viewMatrix,
-                    projectionMatrix,
-                    colorCorrectionRgba,
-                    DEFAULT_COLOR
-                )
+        for (loader in loaders) {
+            if (!loader.isDone) {
+                loader.cancel(true)
             }
-        } catch (t: Throwable) {
-            // Avoid crashing the application due to unhandled exceptions.
-            Log.e(TAG, "Exception on the OpenGL thread", t)
-        } finally {
-            GLES20.glDepthMask(true)
         }
-    }
-
-    private fun configureSession() {
-        Log.i(TAG, "Config session!")
-        val config = Config(session)
-        config.augmentedFaceMode = AugmentedFaceMode.MESH3D
-        session!!.configure(config)
     }
 
     private fun restartActivity() {
         this.recreate()
     }
+
+    private fun loadModels() {
+        loaders.add(ModelRenderable.builder()
+            .setSource(this, Uri.parse("models/fox.glb"))
+            .setIsFilamentGltf(true)
+            .build()
+            .thenAccept { model: ModelRenderable ->
+                faceModel = model
+            }
+            .exceptionally {
+                Toast.makeText(this, "Unable to load renderable", Toast.LENGTH_LONG).show()
+                null
+            }
+        )
+    }
+
+    private fun loadTextures() {
+        loaders.add(
+            Texture.builder()
+                .setSource(this, Uri.parse("textures/freckles.png"))
+                .setUsage(Texture.Usage.COLOR_MAP)
+                .build()
+                .thenAccept { texture: Texture ->
+                    faceTexture = texture
+                }
+                .exceptionally {
+                    Toast.makeText(this, "Unable to load texture", Toast.LENGTH_LONG).show()
+                    null
+                }
+        )
+    }
+
+    private fun onAugmentedFaceTrackingUpdate(augmentedFace: AugmentedFace) {
+        if (faceModel == null || faceTexture == null) {
+            return
+        }
+        val existingFaceNode = facesNodes[augmentedFace]
+        when (augmentedFace.trackingState) {
+            TrackingState.TRACKING -> if (existingFaceNode == null) {
+                val faceNode = AugmentedFaceNode(augmentedFace)
+                val modelInstance = faceNode.setFaceRegionsRenderable(faceModel)
+                modelInstance.isShadowCaster = false
+                modelInstance.isShadowReceiver = true
+                faceNode.faceMeshTexture = faceTexture
+                arSceneView!!.scene.addChild(faceNode)
+                facesNodes[augmentedFace] = faceNode
+            }
+            TrackingState.STOPPED -> {
+                if (existingFaceNode != null) {
+                    arSceneView!!.scene.removeChild(existingFaceNode)
+                }
+                facesNodes.remove(augmentedFace)
+            }
+            else -> {Log.d(TAG, "Tracking paused")}
+        }
+    }
+
+    /*
+   * Used as a handler for onClick, so the signature must match onClickListener.
+   */
+    private fun toggleRecording(unusedView: ArSceneView?) {
+
+        // TODO add write permission check
+        unusedView?.let {
+            val recording = videoRecorder.onToggleRecord(it)
+            if (!recording) {
+                val videoPath = videoRecorder.videoPath!!.absolutePath
+                Toast.makeText(this, "Video saved: $videoPath", Toast.LENGTH_SHORT).show()
+                Log.d(TAG, "Video saved: $videoPath")
+
+                // Send  notification of updated content.
+                val values = ContentValues()
+                values.put(MediaStore.Video.Media.TITLE, "Sceneform Video")
+                values.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+                values.put(MediaStore.Video.Media.DATA, videoPath)
+                contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
+            }
+        }
+    }
+
 
 }
