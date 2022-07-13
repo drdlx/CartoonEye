@@ -103,6 +103,8 @@ dependencies {
 
     implementation "com.gorisse.thomas.sceneform:sceneform:1.21.0"
 
+    implementation 'com.google.mlkit:face-detection:16.1.5'
+
     testImplementation "io.mockk:mockk:1.12.4"
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'

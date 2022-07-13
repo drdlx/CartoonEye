@@ -30,8 +30,10 @@ fun GalleryTabScreen(
     uiState: GalleryTabUiState,
     setImageCallback: (Uri) -> Unit,
     saveImageCallback: (Uri, Context) -> Unit,
+    processImageCallback: (Context) -> Unit,
 ) {
     val imageUri = uiState.currentPictureUri.observeAsState(initial = EMPTY_IMAGE_URI)
+    val context = LocalContext.current
 
     if (imageUri.value != EMPTY_IMAGE_URI) {
         Box(modifier = Modifier) {
@@ -65,6 +67,7 @@ fun GalleryTabScreen(
             modifier = Modifier,
             onImageUri = { file ->
                 setImageCallback(file)
+                processImageCallback(context)
             }
         )
     }
@@ -81,6 +84,7 @@ fun CameraTabScreenPreview() {
             uiState = uiState,
             setImageCallback = {},
             saveImageCallback = { _: Uri, _: Context -> },
+            processImageCallback = {},
         )
     }
 }
