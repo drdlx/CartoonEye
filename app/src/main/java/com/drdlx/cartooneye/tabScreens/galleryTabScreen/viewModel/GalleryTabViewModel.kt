@@ -1,26 +1,32 @@
 package com.drdlx.cartooneye.tabScreens.galleryTabScreen.viewModel
 
+import android.R
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.ImageDecoder
+import android.graphics.*
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
+import android.util.SparseArray
 import android.widget.Toast
+import androidx.core.net.toUri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.drdlx.cartooneye.services.files.FilesIOService
-import com.drdlx.cartooneye.tabScreens.cameraTabScreen.model.CameraTabUiState
 import com.drdlx.cartooneye.tabScreens.galleryTabScreen.model.GalleryTabUiState
 import com.drdlx.cartooneye.utils.EMPTY_IMAGE_URI
+import com.drdlx.cartooneye.utils.makeTemporaryPicture
+import com.google.ar.core.Frame
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceContour
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
 import com.google.mlkit.vision.face.FaceLandmark
+import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
 import java.io.IOException
-import android.util.Log
+
 
 @KoinViewModel
 class GalleryTabViewModel(
@@ -56,9 +62,22 @@ class GalleryTabViewModel(
             try {
                 image = InputImage.fromFilePath(context, uri)
                 val detector = FaceDetection.getClient(highAccuracyOpts)
-                val result = detector.process(image)
+
+                val paint = Paint()
+                paint.strokeWidth = 6f
+                paint.color = Color.RED
+                paint.style = Paint.Style.STROKE
+
+                val tempBitmap =
+                    Bitmap.createBitmap(image.width, image.height, Bitmap.Config.RGB_565)
+                val canvas = Canvas(tempBitmap)
+
+                image.bitmapInternal?.let { canvas.drawBitmap(it, 0f, 0f, null) }
+
+                detector.process(image)
                     .addOnSuccessListener { faces ->
                         // Task completed successfully
+                        viewModelScope.launch {
                         for (face in faces) {
                             val bounds = face.boundingBox
                             val rotY = face.headEulerAngleY // Head is rotated to the right rotY degrees
@@ -67,6 +86,7 @@ class GalleryTabViewModel(
                             println("bounds: $bounds")
                             println("rotY: $rotY")
                             println("rotZ: $rotZ")
+                            canvas.drawRect(bounds, paint)
 
                             // If landmark detection was enabled (mouth, ears, eyes, cheeks, and
                             // nose available):
@@ -101,6 +121,12 @@ class GalleryTabViewModel(
 
 
                         }
+
+                        val tempFile = makeTemporaryPicture(tempBitmap)
+                        changeCurrentPicture(tempFile.toUri())
+
+                        }
+
                     }
                     .addOnFailureListener { e ->
                         Log.e(TAG, "Face detection failed $e")
