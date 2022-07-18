@@ -1,6 +1,5 @@
 package com.drdlx.cartooneye.mainScreens.mainScreen.navigation
 
-import android.view.View
 import androidx.compose.runtime.Composable
 import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavHostController
@@ -13,7 +12,6 @@ import com.drdlx.cartooneye.tabScreens.cameraTabScreen.viewModel.CameraTabViewMo
 import com.drdlx.cartooneye.tabScreens.galleryTabScreen.view.GalleryTabScreen
 import com.drdlx.cartooneye.tabScreens.galleryTabScreen.viewModel.GalleryTabViewModel
 import com.google.ar.sceneform.ArSceneView
-import com.google.ar.sceneform.SceneView
 import com.google.ar.sceneform.ux.ArFrontFacingFragment
 import org.koin.androidx.compose.getViewModel
 
@@ -45,6 +43,7 @@ fun TabsNavigation(
                 uiState = viewModel.uiState,
                 setImageCallback = viewModel::changeCurrentPicture,
                 saveImageCallback = viewModel::saveCurrentPicture,
+                processImageCallback = viewModel::processImage
             )
         }
     }

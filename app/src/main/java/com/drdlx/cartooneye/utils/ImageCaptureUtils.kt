@@ -1,16 +1,15 @@
 package com.drdlx.cartooneye.utils
 
 import android.content.ContentValues
-import android.graphics.Bitmap
+import android.graphics.*
 import android.graphics.ImageFormat.NV21
-import android.graphics.Rect
-import android.graphics.YuvImage
 import android.media.Image
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import androidx.annotation.DimenRes
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import com.drdlx.cartooneye.startScreen.MainActivity
@@ -72,3 +71,16 @@ suspend fun makeTemporaryPicture(bitmap: Bitmap): File = withContext(Dispatchers
         }
 
 }
+
+/*fun Bitmap.addOverlay(@DimenRes marginTop: Int, @DimenRes marginLeft: Int, overlay: Bitmap): Bitmap? {
+    val bitmapWidth = this.width
+    val bitmapHeight = this.height
+    val marginLeft = shareBitmapWidth - overlay.width - resources.getDimension(marginLeft)
+    val finalBitmap = Bitmap.createBitmap(bitmapWidth, bitmapHeight, this
+        .config)
+
+    val canvas = Canvas(finalBitmap)
+    canvas.drawBitmap(this, Matrix(), null)
+    canvas.drawBitmap(overlay, marginLeft, resources.getDimension(marginTop), null)
+    return finalBitmap
+}*/
