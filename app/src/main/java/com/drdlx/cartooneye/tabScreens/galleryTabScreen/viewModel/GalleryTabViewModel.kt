@@ -1,14 +1,13 @@
 package com.drdlx.cartooneye.tabScreens.galleryTabScreen.viewModel
 
-import android.R
 import android.content.Context
 import android.graphics.*
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
-import android.util.SparseArray
 import android.widget.Toast
+import androidx.core.graphics.toRectF
 import androidx.core.net.toUri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -17,7 +16,6 @@ import com.drdlx.cartooneye.services.files.FilesIOService
 import com.drdlx.cartooneye.tabScreens.galleryTabScreen.model.GalleryTabUiState
 import com.drdlx.cartooneye.utils.EMPTY_IMAGE_URI
 import com.drdlx.cartooneye.utils.makeTemporaryPicture
-import com.google.ar.core.Frame
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceContour
 import com.google.mlkit.vision.face.FaceDetection
@@ -35,6 +33,11 @@ class GalleryTabViewModel(
 
     companion object {
         private const val TAG = "GalleryTabViewModel"
+        private const val FACE_POSITION_RADIUS = 8.0f
+        private const val ID_TEXT_SIZE = 30.0f
+        private const val ID_Y_OFFSET = 40.0f
+        private const val BOX_STROKE_WIDTH = 5.0f
+        private const val NUM_COLORS = 10
     }
 
     private val currentPictureUri = MutableLiveData(EMPTY_IMAGE_URI)
@@ -55,6 +58,7 @@ class GalleryTabViewModel(
             val highAccuracyOpts = FaceDetectorOptions.Builder()
                 .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
                 .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_ALL)
+                .setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL)
                 .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
                 .build()
 
@@ -72,7 +76,10 @@ class GalleryTabViewModel(
                     Bitmap.createBitmap(image.width, image.height, Bitmap.Config.RGB_565)
                 val canvas = Canvas(tempBitmap)
 
-                image.bitmapInternal?.let { canvas.drawBitmap(it, 0f, 0f, null) }
+                val textureBitmap = BitmapFactory.decodeStream(context.assets.open("2d-assets/nose.png"))
+//                textureBitmap.config = Bitmap.Config.ARGB_8888
+
+                image.bitmapInternal?.let { canvas.drawBitmap(it, Matrix(), null) }
 
                 detector.process(image)
                     .addOnSuccessListener { faces ->
@@ -94,6 +101,73 @@ class GalleryTabViewModel(
                             leftEar?.let {
                                 val leftEarPos = leftEar.position
                                 println ("leftEarPos: $leftEarPos")
+                            }
+
+                            val rightEar = face.getLandmark(FaceLandmark.RIGHT_EAR)
+
+                            val leftCheek = face.getLandmark(FaceLandmark.LEFT_CHEEK)
+                            val rightCheek = face.getLandmark(FaceLandmark.RIGHT_CHEEK)
+                            val nose = face.getLandmark(FaceLandmark.NOSE_BASE)
+
+                            canvas.drawCircle(face.boundingBox.exactCenterX(), face.boundingBox.exactCenterY(), (bounds.width() / 2).toFloat(), paint)
+
+                            when (leftCheek != null) {
+                                true -> {
+                                    val leftCheekPos = leftCheek.position
+                                    when (rightCheek != null && nose != null) {
+                                        true -> {
+                                            val rightCheekPos = rightCheek.position
+                                            println ("leftCheekPos: $leftCheekPos")
+                                            println ("rightCheekPos: $rightCheekPos")
+
+                                            /*// Go with both cheek positions
+                                            val cheekBonds = Rect(
+                                                leftCheekPos.x.toInt(),
+                                                bounds.top.toInt(),
+                                                rightCheekPos.x.toInt(),
+                                                bounds.bottom.toInt(),
+                                            )
+                                            canvas.drawRect(cheekBonds, paint)*/
+                                            val textureMatrix = Matrix()
+
+                                            val noseBottom = face.getContour(FaceContour.NOSE_BOTTOM)
+                                            val noseBridge = face.getContour(FaceContour.NOSE_BRIDGE)
+                                            println("noseBottom: $noseBottom")
+                                            println("noseBridge: $noseBridge")
+//                                            val noseRect = RectF(noseLeftBottom!!.x, noseCenterTop!!.y, noseRightBottom!!.x, noseRightBottom!!.y)
+
+                                            println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA ${noseBottom}")
+                                            println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA ${face.getContour(FaceContour.NOSE_BRIDGE)?.points}")
+                                            val textureBitmapCopy = textureBitmap.copy(Bitmap.Config.ARGB_8888, true)
+                                            val noseRect = RectF(
+                                                noseBottom!!.points.first().x,
+                                                noseBridge!!.points.first().y,
+                                                (noseBottom!!.points.last().x),
+                                            (noseBottom!!.points.last().y)
+                                            )
+
+                                            canvas.drawRect(noseRect, paint)
+
+                                            textureMatrix.setRectToRect(canvas.clipBounds.toRectF(), noseRect, Matrix.ScaleToFit.FILL)
+                                            canvas.drawBitmap(textureBitmapCopy, null, noseRect, null)
+//                                            canvas.drawBitmap(textureBitmapCopy, textureMatrix, null)
+                                        }
+                                        false -> {
+                                            println ("leftCheekPos: $leftCheekPos")
+                                            // Go with left cheek placement on canvas only
+                                        }
+                                    }
+                                }
+                                false -> {
+                                    when (rightCheek != null) {
+                                        true -> {
+                                            // Go with right cheek placement on canvas only
+                                        }
+                                        false -> {
+                                            Log.i(TAG, "No cheeks")
+                                        }
+                                    }
+                                }
                             }
 
                             // If contour detection was enabled:
@@ -122,8 +196,7 @@ class GalleryTabViewModel(
 
                         }
 
-                        val tempFile = makeTemporaryPicture(tempBitmap)
-                        changeCurrentPicture(tempFile.toUri())
+                        changeCurrentPicture(makeTemporaryPicture(tempBitmap).toUri())
 
                         }
 
