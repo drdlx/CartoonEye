@@ -7,7 +7,6 @@ import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
-import androidx.core.graphics.toRectF
 import androidx.core.net.toUri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -20,7 +19,6 @@ import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceContour
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
-import com.google.mlkit.vision.face.FaceLandmark
 import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
 import java.io.IOException
@@ -76,8 +74,6 @@ class GalleryTabViewModel(
                     Bitmap.createBitmap(image.width, image.height, Bitmap.Config.RGB_565)
                 val canvas = Canvas(tempBitmap)
 
-                val textureBitmap = BitmapFactory.decodeStream(context.assets.open("2d-assets/nose.png"))
-//                textureBitmap.config = Bitmap.Config.ARGB_8888
 
                 image.bitmapInternal?.let { canvas.drawBitmap(it, Matrix(), null) }
 
@@ -85,121 +81,68 @@ class GalleryTabViewModel(
                     .addOnSuccessListener { faces ->
                         // Task completed successfully
                         viewModelScope.launch {
-                        for (face in faces) {
-                            val bounds = face.boundingBox
-                            val rotY = face.headEulerAngleY // Head is rotated to the right rotY degrees
-                            val rotZ = face.headEulerAngleZ // Head is tilted sideways rotZ degrees
-                            println("Success")
-                            println("bounds: $bounds")
-                            println("rotY: $rotY")
-                            println("rotZ: $rotZ")
-                            canvas.drawRect(bounds, paint)
+                            for (face in faces) {
+                                val bounds = face.boundingBox
 
-                            // If landmark detection was enabled (mouth, ears, eyes, cheeks, and
-                            // nose available):
-                            val leftEar = face.getLandmark(FaceLandmark.LEFT_EAR)
-                            leftEar?.let {
-                                val leftEarPos = leftEar.position
-                                println ("leftEarPos: $leftEarPos")
-                            }
+                                val faceContour = face.getContour(FaceContour.FACE)
+                                if (faceContour != null) {
+                                    val leftEarBottomPointFace = faceContour.points[31]
+                                    val leftEarTopPointFace = faceContour.points[34]
+                                    val leftEarRect = RectF(
+                                        leftEarBottomPointFace.x,
+                                        bounds.top.toFloat(),
+                                        leftEarTopPointFace.x,
+                                        leftEarBottomPointFace.y,
+                                    )
+                                    val leftEarFinalRect = RectF(
+                                        leftEarRect.left - leftEarRect.width(),
+                                        leftEarRect.top - leftEarRect.height(),
+                                        leftEarRect.right,
+                                        leftEarRect.bottom
+                                    )
+                                    val leftEarTexture =
+                                        BitmapFactory.decodeStream(context.assets.open("2d-assets/left-ear.png"))
+                                    canvas.drawBitmap(leftEarTexture, null, leftEarFinalRect, null)
 
-                            val rightEar = face.getLandmark(FaceLandmark.RIGHT_EAR)
+                                    val rightEarBottomPointFace = faceContour.points[2]
+                                    val rightEarRect = RectF(
+                                        rightEarBottomPointFace.x,
+                                        bounds.top.toFloat(),
+                                        bounds.right.toFloat(),
+                                        leftEarBottomPointFace.y,
+                                    )
+                                    val rightEarFinalRect = RectF(
+                                        rightEarRect.left,
+                                        rightEarRect.top - rightEarRect.height(),
+                                        rightEarRect.right + rightEarRect.width(),
+                                        rightEarRect.bottom
+                                    )
+                                    val rightEarTexture =
+                                        BitmapFactory.decodeStream(context.assets.open("2d-assets/right-ear.png"))
+                                    canvas.drawBitmap(
+                                        rightEarTexture,
+                                        null,
+                                        rightEarFinalRect,
+                                        null
+                                    )
 
-                            val leftCheek = face.getLandmark(FaceLandmark.LEFT_CHEEK)
-                            val rightCheek = face.getLandmark(FaceLandmark.RIGHT_CHEEK)
-                            val nose = face.getLandmark(FaceLandmark.NOSE_BASE)
-
-                            canvas.drawCircle(face.boundingBox.exactCenterX(), face.boundingBox.exactCenterY(), (bounds.width() / 2).toFloat(), paint)
-
-                            when (leftCheek != null) {
-                                true -> {
-                                    val leftCheekPos = leftCheek.position
-                                    when (rightCheek != null && nose != null) {
-                                        true -> {
-                                            val rightCheekPos = rightCheek.position
-                                            println ("leftCheekPos: $leftCheekPos")
-                                            println ("rightCheekPos: $rightCheekPos")
-
-                                            /*// Go with both cheek positions
-                                            val cheekBonds = Rect(
-                                                leftCheekPos.x.toInt(),
-                                                bounds.top.toInt(),
-                                                rightCheekPos.x.toInt(),
-                                                bounds.bottom.toInt(),
-                                            )
-                                            canvas.drawRect(cheekBonds, paint)*/
-                                            val textureMatrix = Matrix()
-
-                                            val noseBottom = face.getContour(FaceContour.NOSE_BOTTOM)
-                                            val noseBridge = face.getContour(FaceContour.NOSE_BRIDGE)
-                                            println("noseBottom: $noseBottom")
-                                            println("noseBridge: $noseBridge")
-//                                            val noseRect = RectF(noseLeftBottom!!.x, noseCenterTop!!.y, noseRightBottom!!.x, noseRightBottom!!.y)
-
-                                            println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA ${noseBottom}")
-                                            println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA ${face.getContour(FaceContour.NOSE_BRIDGE)?.points}")
-                                            val textureBitmapCopy = textureBitmap.copy(Bitmap.Config.ARGB_8888, true)
-                                            val noseRect = RectF(
-                                                noseBottom!!.points.first().x,
-                                                noseBridge!!.points.first().y,
-                                                (noseBottom!!.points.last().x),
-                                            (noseBottom!!.points.last().y)
-                                            )
-
-                                            canvas.drawRect(noseRect, paint)
-
-                                            textureMatrix.setRectToRect(canvas.clipBounds.toRectF(), noseRect, Matrix.ScaleToFit.FILL)
-                                            canvas.drawBitmap(textureBitmapCopy, null, noseRect, null)
-//                                            canvas.drawBitmap(textureBitmapCopy, textureMatrix, null)
-                                        }
-                                        false -> {
-                                            println ("leftCheekPos: $leftCheekPos")
-                                            // Go with left cheek placement on canvas only
-                                        }
-                                    }
-                                }
-                                false -> {
-                                    when (rightCheek != null) {
-                                        true -> {
-                                            // Go with right cheek placement on canvas only
-                                        }
-                                        false -> {
-                                            Log.i(TAG, "No cheeks")
-                                        }
+                                    val noseBottom = face.getContour(FaceContour.NOSE_BOTTOM)
+                                    val noseBridge = face.getContour(FaceContour.NOSE_BRIDGE)
+                                    if (noseBottom != null && noseBridge != null) {
+                                        val noseTexture =
+                                            BitmapFactory.decodeStream(context.assets.open("2d-assets/nose.png"))
+                                        val noseRect = RectF(
+                                            noseBottom.points.first().x,
+                                            noseBridge.points.first().y,
+                                            (noseBottom.points.last().x),
+                                            (noseBottom.points.last().y)
+                                        )
+                                        canvas.drawBitmap(noseTexture, null, noseRect, null)
                                     }
                                 }
                             }
-
-                            // If contour detection was enabled:
-                            val leftEyeContour = face.getContour(FaceContour.LEFT_EYE)?.points
-                            val upperLipBottomContour = face.getContour(FaceContour.UPPER_LIP_BOTTOM)?.points
-
-                            println("leftEyeContour: $leftEyeContour")
-                            println("upperLipBottomContour: $upperLipBottomContour")
-
-                            // If classification was enabled:
-                            if (face.smilingProbability != null) {
-                                val smileProb = face.smilingProbability
-                                println("smileProb: $smileProb")
-                            }
-                            if (face.rightEyeOpenProbability != null) {
-                                val rightEyeOpenProb = face.rightEyeOpenProbability
-                                println("rightEyeOpenProb: $rightEyeOpenProb")
-                            }
-
-                            // If face tracking was enabled:
-                            if (face.trackingId != null) {
-                                val id = face.trackingId
-                                println("trackingId: $id")
-                            }
-
-
+                            changeCurrentPicture(makeTemporaryPicture(tempBitmap).toUri())
                         }
-
-                        changeCurrentPicture(makeTemporaryPicture(tempBitmap).toUri())
-
-                        }
-
                     }
                     .addOnFailureListener { e ->
                         Log.e(TAG, "Face detection failed $e")
